@@ -29,4 +29,10 @@ at = connect(username=username,password=password,cache=oc)
 
 version = at.GetWsdlVersion() 
 print version
+
+
+# tested using notes on a specific ticket to make my life easy
+ticket 377506
+
+
 quit()

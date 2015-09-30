@@ -1,6 +1,13 @@
 from pytz import timezone
 from datetime import datetime
-from constants import AUTOTASK_API_TIMEZONE,AUTOTASK_API_QUERY_ID_LIMIT
+from constants import *
+import connection
+from connection import Connection
+
+SPACE = AUTOTASK_QUERY_XML_SPACING
+
+def connect(**kwargs):
+    connection.connect(atws_version='Query',**kwargs)
 
 
 def get_id_query(entity,id_list):
@@ -44,7 +51,7 @@ def get_queries_for_entities_by_id(entity,
     return query_list
 
 
-class at_query:
+class Query(Connection):
     Equals='Equals'
     NotEqual='NotEqual'
     GreaterThan='GreaterThan'
@@ -62,6 +69,7 @@ class at_query:
     SoundsLike='SoundsLike'
     apitimezone = timezone(AUTOTASK_API_TIMEZONE)
     querytimezone = timezone(LOCAL_TIME_ZONE)
+
 
     def FROM(self,entity):
         self._entity=entity
@@ -105,11 +113,7 @@ class at_query:
         self.openBracket('OR')
         
     def reset(self):
-        self.__init__()
- 
-    def __init__(self):
         self._operations=list()
-        self._spaces=3
         self._xml=""
 
 
@@ -165,8 +169,8 @@ class at_query:
         else:
             value=operation['VALUE']
         udf=operation['UDF']
-        fspacer=" " * self._spaces
-        espacer=" " * (self._spaces +1)
+        fspacer=" " * SPACE
+        espacer=" " * (SPACE +1)
 
         if udf is True:
             udf=" udf='true'"
@@ -182,16 +186,16 @@ class at_query:
 
     def _buildNEST(self,operation):
         if operation['STATUS'] is False:
-            self._spaces -= 1
-            cspacer=" " * self._spaces
+            SPACE -= 1
+            cspacer=" " * SPACE
             self._xml+="\n{0}</condition>".format(cspacer)
             
         else:
-            cspacer=" " * self._spaces
+            cspacer=" " * SPACE
             cxml="\n{0}<condition operator='{1}'>"
             
             self._xml+=cxml.format(cspacer,operation['OPERATOR'])
-            self._spaces += 1
+            SPACE += 1
 
     
     def _buildBRACKET(self,operation):

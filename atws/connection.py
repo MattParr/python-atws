@@ -56,8 +56,9 @@ def connect(**kwargs):
         session = requests.Session()
         session.auth = (kwargs['username'],kwargs['password'])        
         transport = kwargs.setdefault('transport',RequestsTransport(session))
-    kwargs.setdefault('url',get_zone_wsdl(kwargs['username']))  
-    return Connection(**kwargs)
+    kwargs.setdefault('url',get_zone_wsdl(kwargs['username']))
+    obj = kwargs.get('atws_object',Connection)
+    return obj(**kwargs)
 
 
 def handle_errors(f):
