@@ -3,6 +3,11 @@ Created on 27 Sep 2015
 
 @author: matt
 '''
+from constants import (AUTOTASK_API_QUERY_DATEFORMAT,
+                       AUTOTASK_API_QUERY_RESULT_LIMIT,
+                       AUTOTASK_API_TIMEZONE,
+                       LOCAL_TIMEZONE)
+                       
 def has_udf(entity):
     try:
         if entity.UserDefinedFields.UserDefinedField[0]:
@@ -32,6 +37,48 @@ def entities_have_userdefined_fields(entities):
 def clean_entities(entities):
     for entity in entities:
         clean_entity(entity)
+
+
+def query_requires_another_call(result,query):
+    try:
+        query.get_query_xml()
+    except AttributeError:
+        return False
+    if query_result_count(result) == AUTOTASK_API_QUERY_RESULT_LIMIT:
+        return True
+    return False
+
+
+def get_result_entities(result):
+    try:
+        return result.EntityResults.Entity
+    except Exception:
+        return []
+    
+
+def get_highest_id(result,field):
+    return max(getattr(entity,field) for entity in get_result_entities(result))
+
+
+def query_result_count(result):
+    return len(get_result_entities(result))
+
+
+def format_datetime_for_api_query(dt):
+    return localise_datetime(dt).strftime(AUTOTASK_API_QUERY_DATEFORMAT)
+
+
+def localise_datetime(dt):
+    if dt.tzinfo is None:
+        api_dt = LOCAL_TIMEZONE.localize(dt).astimezone(AUTOTASK_API_TIMEZONE)
+    else:
+        api_dt = dt.astimezone(AUTOTASK_API_TIMEZONE)
+    return api_dt
+
+
+def split_list_into_chunks(list_to_split,chunk_length):
+    for i in xrange(0, len(list_to_split), chunk_length):
+        yield list_to_split[i:i+chunk_length]
 
 
 def clean_udfs(entity):
@@ -65,8 +112,4 @@ def clean_entity(entity):
 def api_datetime_string(dt):
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
-
-def split_entities_into_packet_lengths(entities,packet_length):
-    for i in xrange(0, len(entities), packet_length):
-        yield entities[i:i+packet_length]
         

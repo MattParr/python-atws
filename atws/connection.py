@@ -50,14 +50,15 @@ def disable_warnings():
     
     
 def connect(**kwargs):
+    client_options = kwargs.setdefault('client_options',{})
     if DISABLE_SSL_WARNINGS:
         disable_warnings()
     if USE_REQUEST_TRANSPORT_TYPE:
         session = requests.Session()
         session.auth = (kwargs['username'],kwargs['password'])        
-        transport = kwargs.setdefault('transport',RequestsTransport(session))
-    kwargs.setdefault('url',get_zone_wsdl(kwargs['username']))
-    obj = kwargs.get('atws_object',Connection)
+        transport = client_options.setdefault('transport',RequestsTransport(session))
+    client_options.setdefault('url',get_zone_wsdl(kwargs['username']))
+    obj = kwargs.get('atws_version',Connection)
     return obj(**kwargs)
 
 
@@ -80,6 +81,10 @@ def handle_errors(f):
 
 
 class RequestsTransport(transport.Transport):
+    # @todo: handle transient errors by retrying
+    # ideally, we should only have to raise on a few errors
+    # like destination unreachable, but not timeouts or transport
+    # failure
     def __init__(self, session=None):
         transport.Transport.__init__(self)
         self._session = session or requests.Session()
@@ -111,7 +116,12 @@ class Connection(object):
         '''
         Constructor
         '''
-        self.client = suds.client.Client(**kwargs)
+        self.kwargs = kwargs
+        try:
+            self.client = kwargs['client']
+        except KeyError:
+            options = kwargs.get('client_options',{})
+            self.client = suds.client.Client(**options)
     
     
     def __getattr__(self,attr):

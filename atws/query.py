@@ -1,57 +1,27 @@
-from pytz import timezone
 from datetime import datetime
-from constants import *
-import connection
-from connection import Connection
-
-SPACE = AUTOTASK_QUERY_XML_SPACING
-
-def connect(**kwargs):
-    connection.connect(atws_version='Query',**kwargs)
+from xml.etree.ElementTree import Element, SubElement, tostring
+from helpers import format_datetime_for_api_query,split_list_into_chunks
+from constants import AUTOTASK_API_QUERY_ID_LIMIT
 
 
-def get_id_query(entity,id_list):
-    query = at_query()
-    query.setEntity(entity)
+def get_id_query(entity_type,id_list):
+    query = Query()
+    query.setEntity(entity_type)
     for entity_id in id_list:
         query.OR('id',query.Equals,entity_id)
     return query
     
-    
-def get_multiple_query_results(at,query_list):
-    results = list()
-    for query in query_list:
-        result = at.getEntityResults(query)
-        if result:
-            results+=result
-    return results
 
-
-def get_queries_for_entities_by_id(entity,
+def get_queries_for_entities_by_id(entity_type,
                                    id_list,
                                    id_limit=AUTOTASK_API_QUERY_ID_LIMIT,
                                    query_function=get_id_query):
-    # because we can only do circa 200 lines in a query
-    # if we need to check more querys, we need more lines
-    query_list = list()
-    temp_id_list = list()
-    i = 0
-    for entity_id in id_list:
-        i+=1
-        temp_id_list.append(entity_id)
-        if i == id_limit:
-            # generate the query.  put it in the list
-            # clear the list, and start again
-            query_list.append(query_function(entity,temp_id_list))
-            i = 0
-            temp_id_list = list()
-    if temp_id_list:
-        # append the last query
-        query_list.append(query_function(entity,temp_id_list))
-    return query_list
+    id_lists = split_list_into_chunks(id_list,AUTOTASK_API_QUERY_ID_LIMIT)
+    return [query_function(entity_type,id_list) for id_list in id_lists]
 
+FIELD_XML_TPL="<field>{0}<expression op='{1}'>{2}</expression>"
 
-class Query(Connection):
+class Query(object):
     Equals='Equals'
     NotEqual='NotEqual'
     GreaterThan='GreaterThan'
@@ -67,151 +37,111 @@ class Query(Connection):
     Like='Like'
     NotLike='NotLike'
     SoundsLike='SoundsLike'
-    apitimezone = timezone(AUTOTASK_API_TIMEZONE)
-    querytimezone = timezone(LOCAL_TIME_ZONE)
 
 
-    def FROM(self,entity):
-        self._entity=entity
+    def FROM(self,entity_type):
+        self.entity_type = entity_type
 
-
+        
     def WHERE(self,field_name,field_condition,field_value,udf=False):
-        self._addFieldCriteria(field_name, field_condition, field_value,udf)
-    
+        self._add_field(None, field_name, field_condition, field_value, udf)
+
     
     def OR(self,field_name,field_condition,field_value,udf=False):
-        self._startNestedCondition('OR')
-        self._addFieldCriteria(field_name, field_condition, field_value,udf)
-        self._endNestedCondition()
+        self._add_field('OR', field_name, field_condition, field_value, udf)
     
     
     def AND(self,field_name,field_condition,field_value,udf=False):
-        self._startNestedCondition()
-        self._addFieldCriteria(field_name, field_condition, field_value,udf)
-        self._endNestedCondition()
+        self._add_field(None, field_name, field_condition, field_value, udf)
     
     
-    def openBracket(self,operator='AND'):
-        bracket=dict()
-        bracket['TYPE']='BRACKET'
-        bracket['STATUS']=True
-        bracket['OPERATOR']=operator
+    def _add_field(self,operator,field_name,field_condition,field_value,udf=False):
+        attributes = {}
+        if udf:
+            attributes['udf'] = 'true' 
+        self.open_bracket(operator)
+        field = SubElement(self.cursor,'field', attrib=attributes)
+        field.text = field_name
+        expression = SubElement(field,'expression',attrib={'op':field_condition})
+        expression.text = self._process_field_value(field_value)
+        self.close_bracket()
+        return field,expression
+    
+    
+    def open_bracket(self,operator=None):
+        attrib = {}
+        if operator:
+            attrib = {'operator':operator}
+        parent = self.cursor
+        self.cursor = SubElement(parent,'condition',attrib=attrib)
+        self.cursor.parent = parent
+    
+    
+    def close_bracket(self):
+        self.cursor = self.cursor.parent
         
-        self._operations.append(bracket)
-        
-    def closeBracket(self):
-        bracket=dict()
-        bracket['TYPE']='BRACKET'
-        bracket['STATUS']=False
-        
-        self._operations.append(bracket)
 
-    def andOpenBracket(self):
-        self.openBracket()
-    
-    def orOpenBracket(self):
-        self.openBracket('OR')
-        
     def reset(self):
-        self._operations=list()
-        self._xml=""
-
-
-    def _addFieldCriteria(self,name,condition,value,udf=False):
-        field=dict()
-        field['TYPE']='FIELD'
-        field['NAME']=name
-        field['CONDITION']=condition
-        field['VALUE']=value
-        field['UDF']=udf
-        
-        self._operations.append(field)
-        
-
-    def _startNestedCondition(self,operator='AND'):
-        nest=dict()
-        nest['TYPE']='NEST'
-        nest['OPERATOR']=operator
-        nest['STATUS']=True
-        
-        self._operations.append(nest)
-
-
-    def _endNestedCondition(self):
-        nest=dict()
-        nest['TYPE']='NEST'
-        nest['STATUS']=False
-        
-        self._operations.append(nest)
-
-        
-    def getQueryXml(self):
-        self._buildXml()
-        xml=self._xml
-        self._xml=""
-        return xml
+        self.query.clear()
+        self.minimum_id_xml = None
+        self.minimum_id = None
+        self.minimum_id_field = 'id'
+        self.cursor = self.query
 
     
-    def _buildXml(self):
-        for operation in self._operations:
-            getattr(self, '_build{0}'.format(operation['TYPE']))(operation)
+    def get_query_xml(self):
+        self.entityxml.text = self.entity_type
+        if self.minimum_id:
+            self._add_min_id_field()
+        return tostring(self.queryxml)
     
-        qxml=self._xml
-        xml="<queryxml>\n <entity>{0}</entity>\n  <query>{1}\n  </query>\n</queryxml>"
-        self._xml=xml.format(self._entity,qxml)
-
+    
+    def pretty_print(self):
+        import xml.dom.minidom
+        return xml.dom.minidom.parseString(self.get_query_xml()).toprettyxml()
+    
+    
+    def set_minimum_id(self,minimum_id,field='id'):
+        self.minimum_id = minimum_id
+        self.minimum_id_field = field
+                
         
-    def _buildFIELD(self,operation):
-        name=operation['NAME']
-        condition=operation['CONDITION']
-        if type(operation['VALUE']) is datetime:
-            value = self.formatDateStamp(operation['VALUE'])
-        else:
-            value=operation['VALUE']
-        udf=operation['UDF']
-        fspacer=" " * SPACE
-        espacer=" " * (SPACE +1)
-
-        if udf is True:
-            udf=" udf='true'"
-        else:
-            udf=""
-        
-        exml="{0}<expression op='{1}'>{2}</expression>"
-        exml=exml.format(espacer,condition,value)
-        
-        fxml="\n{0}<field{1}>{2}\n{3}\n{4}</field>"
-        self._xml+=fxml.format(fspacer,udf,name,exml,fspacer)
-
-
-    def _buildNEST(self,operation):
-        if operation['STATUS'] is False:
-            SPACE -= 1
-            cspacer=" " * SPACE
-            self._xml+="\n{0}</condition>".format(cspacer)
+    def _add_min_id_field(self):
+        try:
+            self._update_min_id_xml()
+        except AttributeError:
+            self._create_min_id_xml()
             
-        else:
-            cspacer=" " * SPACE
-            cxml="\n{0}<condition operator='{1}'>"
-            
-            self._xml+=cxml.format(cspacer,operation['OPERATOR'])
-            SPACE += 1
+    
+    def _update_min_id_xml(self):
+        self.minimum_id_xml.text = self._process_field_value(self.minimum_id)
+    
+    
+    def _create_min_id_xml(self):
+        minimum_id = self._process_field_value(self.minimum_id)
+        expression = self._add_field(None, 
+                                     self.minimum_id_field, 
+                                     self.GreaterThan, 
+                                     minimum_id)[1]
+        self.minimum_id_xml = expression
+    
+    
+    def _process_field_value(self,value):
+        if type(value) is datetime:
+            return format_datetime_for_api_query(value)
+        return str(value)
+    
+    
+    def __init__(self,entity_type = None):
+        self.entity_type = entity_type
+        self.queryxml = Element('queryxml')
+        self.entityxml = SubElement(self.queryxml, 'entity')
+        self.query = SubElement(self.queryxml, 'query')
+        self.reset()
 
+
+    def __str__(self):
+        return repr(self.get_query_xml())
     
-    def _buildBRACKET(self,operation):
-        self._buildNEST(operation)  
-    
-    
-    def formatDateStamp(self,objDateTime):
-        return self.localiseDateTimeField(objDateTime).strftime("%Y-%m-%d %H:%M:%S")
 
 
-    def localiseDateTimeField(self,objDateTime):
-        if objDateTime.tzinfo is None:
-            apiDateTime = self.querytimezone.localize(objDateTime).astimezone(self.apitimezone)
-        else:
-            apiDateTime = objDateTime.astimezone(self.apitimezone)
-        
-        return apiDateTime
-    
-    
