@@ -7,6 +7,7 @@ import logging
 import suds.client
 import suds.transport as transport
 from constants import *
+from _ssl import SSLError
 
 logger = logging.getLogger(__name__)
 suds_version = float(suds.__version__[:3])
@@ -84,23 +85,39 @@ class RequestsTransport(transport.Transport):
     # @todo: handle transient errors by retrying
     # ideally, we should only have to raise on a few errors
     # like destination unreachable, but not timeouts or transport
-    # failure
+    # failure eg: SSLError
     def __init__(self, session=None):
         transport.Transport.__init__(self)
         self._session = session or requests.Session()
-
+        
+        
     @handle_errors
     def open(self, request):
-        resp = self._session.get(request.url,timeout=(3,27))
+        for attempt in xrange(0,6):
+            try:
+                resp = self._session.get(request.url,timeout=(3,27))
+                break
+            except SSLError:
+                if attempt == 5:
+                    raise
+                continue
         return StringIO.StringIO(resp.content)
-
+    
+    
     @handle_errors
     def send(self, request):
-        resp = self._session.post(
-            request.url,
-            data=request.message,
-            headers=request.headers,
-        )
+        for attempt in xrange(0,6):
+            try:
+                resp = self._session.post(
+                                          request.url,
+                                          data=request.message,
+                                          headers=request.headers,
+                                          )
+                break
+            except SSLError:
+                if attempt == 5:
+                    raise
+                continue
         return transport.Reply(
             resp.status_code,
             resp.headers,
