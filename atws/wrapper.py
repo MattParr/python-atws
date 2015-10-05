@@ -47,18 +47,6 @@ class AutotaskProcessException(Exception):
     
     
 class Response(object):
-    def __init__(self):
-        self.errors = []
-        self.successful_entities = []
-        self.failed_entities = []    
-
-        
-    def _get_errors(self,result):
-        try:
-            return result.Errors.ATWSError
-        except Exception:
-            return []
-        
     
     def add_error(self,error):
         self.errors.append(error)
@@ -80,6 +68,19 @@ class Response(object):
     
     def _raise(self):
         raise AutotaskAPIException(self)
+    
+    
+    def __init__(self):
+        self.errors = []
+        self.successful_entities = []
+        self.failed_entities = []    
+
+        
+    def _get_errors(self,result):
+        try:
+            return result.Errors.ATWSError
+        except Exception:
+            return []    
     
     
 class ResponseAction(Response):
@@ -201,9 +202,6 @@ class Wrapper(Connection):
 
 
     def query(self,query):
-
-
-        
         response = ResponseQuery()
         finished = False
         while not finished:
