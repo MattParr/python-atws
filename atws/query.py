@@ -19,7 +19,6 @@ def get_queries_for_entities_by_id(entity_type,
     id_lists = split_list_into_chunks(id_list,AUTOTASK_API_QUERY_ID_LIMIT)
     return [query_function(entity_type,id_list) for id_list in id_lists]
 
-FIELD_XML_TPL="<field>{0}<expression op='{1}'>{2}</expression>"
 
 class Query(object):
     Equals='Equals'
@@ -53,21 +52,8 @@ class Query(object):
     
     def AND(self,field_name,field_condition,field_value,udf=False):
         self._add_field(None, field_name, field_condition, field_value, udf)
-    
-    
-    def _add_field(self,operator,field_name,field_condition,field_value,udf=False):
-        attributes = {}
-        if udf:
-            attributes['udf'] = 'true' 
-        self.open_bracket(operator)
-        field = SubElement(self.cursor,'field', attrib=attributes)
-        field.text = field_name
-        expression = SubElement(field,'expression',attrib={'op':field_condition})
-        expression.text = self._process_field_value(field_value)
-        self.close_bracket()
-        return field,expression
-    
-    
+        
+        
     def open_bracket(self,operator=None):
         attrib = {}
         if operator:
@@ -82,11 +68,11 @@ class Query(object):
         
 
     def reset(self):
+        self.cursor = self.query
         self.query.clear()
         self.minimum_id_xml = None
         self.minimum_id = None
         self.minimum_id_field = 'id'
-        self.cursor = self.query
 
     
     def get_query_xml(self):
@@ -104,7 +90,20 @@ class Query(object):
     def set_minimum_id(self,minimum_id,field='id'):
         self.minimum_id = minimum_id
         self.minimum_id_field = field
-                
+
+
+    def _add_field(self,operator,field_name,field_condition,field_value,udf=False):
+        attributes = {}
+        if udf:
+            attributes['udf'] = 'true' 
+        self.open_bracket(operator)
+        field = SubElement(self.cursor,'field', attrib=attributes)
+        field.text = field_name
+        expression = SubElement(field,'expression',attrib={'op':field_condition})
+        expression.text = self._process_field_value(field_value)
+        self.close_bracket()
+        return field,expression
+                    
         
     def _add_min_id_field(self):
         try:
@@ -143,5 +142,3 @@ class Query(object):
     def __str__(self):
         return repr(self.get_query_xml())
     
-
-
