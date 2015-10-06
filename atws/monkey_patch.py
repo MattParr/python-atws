@@ -31,26 +31,17 @@ def __getattr(entity,attr):
             return helpers.get_udf_value(entity._wrapper,entity,attr)
         except AttributeError:
             raise AttributeError('no attribute or udf named %s',attr)
-        except Exception:
-            raise
-    raise AttributeError(attr)
-
+    return sudsobject.__getattribute__(attr)
 
 
 def __setattr(self,name,value):
     try:
         udf = helpers.get_udf(self._wrapper,self,name)
-        udf.Value = value
-        return
     except AttributeError:
-        pass
-    
-    builtin = name.startswith("__") and name.endswith("__")
-    if not builtin and name not in self.__keylist__:
-        self.__keylist__.append(name)
-    self.__dict__[name] = value
-    
-    
+        sudsobject.__setattr__(self,name,value)
+    else:
+        udf.Value = value
+        
     
 BLACKLISTED_TYPES = [
     'ATWSError',

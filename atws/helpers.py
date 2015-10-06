@@ -10,16 +10,15 @@ from constants import (AUTOTASK_API_QUERY_DATEFORMAT,
                        
 def has_udfs(entity):
     try:
-        if entity.UserDefinedFields.UserDefinedField[0]:
-            return True
+        entity.UserDefinedFields.UserDefinedField[0]
     except Exception:
-        pass
-    return False
+        return False
+    else:
+        return True
 
 
 def get_udf_value(wrapper,entity,name):
-    udf = get_udf(wrapper,entity,name)
-    return udf.Value
+    return get_udf(wrapper,entity,name).Value
 
 
 def get_udf(wrapper,entity,name,default=[]):
