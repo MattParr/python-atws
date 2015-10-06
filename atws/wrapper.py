@@ -2,6 +2,18 @@
 Created on 27 Sep 2015
 
 @author: matt
+
+@todo: - a generic entity monkey patch plugin
+@todo: - a way of adding a custom patch to the monkey patching
+@todo: - a picklist object.  pass entity,field and AT connection.  translates from API return to picklist Value
+@todo: - a switch to turn on picklist and monkey patch the values in on return eg:ticket.IssueTypeName becomes the name value
+@todo: - a switch to turn on full object resolution.  So a ticket would come back with all the possible entities 
+        eg: it would have ticket.Contact would be a contact object.  ticket.Account would be the account Object
+        - it would take all the results of the query, then get all the required contacts in one call etc.
+
+
+
+
 '''
 import logging
 import re
@@ -14,7 +26,11 @@ from connection import Connection
 logger = logging.getLogger(__name__)
 
 def connect(**kwargs):
-    return connection.connect(atws_version=Wrapper,**kwargs)
+    wrapper = connection.connect(atws_version=Wrapper,**kwargs)
+    if MONKEY_PATCHING_ENABLED:
+        from monkey_patch import MonkeyPatch
+        MonkeyPatch(wrapper,**kwargs)
+    return wrapper 
 
 
 class AutotaskAPIException(Exception):

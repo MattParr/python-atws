@@ -8,12 +8,37 @@ from constants import (AUTOTASK_API_QUERY_DATEFORMAT,
                        AUTOTASK_API_TIMEZONE,
                        LOCAL_TIMEZONE)
                        
-def has_udf(entity):
+def has_udfs(entity):
     try:
         if entity.UserDefinedFields.UserDefinedField[0]:
             return True
     except Exception:
-        return False
+        pass
+    return False
+
+
+def get_udf_value(wrapper,entity,name):
+    udf = get_udf(wrapper,entity,name)
+    return udf.Value
+
+
+def get_udf(wrapper,entity,name,default=[]):
+    if has_udfs(entity):
+        for udf in entity.UserDefinedFields.UserDefinedField:
+            if name == udf.Name:
+                return udf
+    if default == []:
+        raise AttributeError('no udf named %s',name)
+    udf = wrapper.new('UserDefinedField')
+    udf.Name = name
+    udf.Value = default
+    entity.UserDefinedFields.UserDefinedField.append(udf)
+    return udf
+
+
+def set_udf(wrapper,entity,name,value):
+    udf = get_udf(wrapper,entity, name, value)
+    udf.Value = value
 
 
 def del_user_defined_fields_attribute(entity):
@@ -29,7 +54,7 @@ def can_multiupdate_entities(entities):
 
 def entities_have_userdefined_fields(entities):
     for entity in entities:
-        if has_udf(entity):
+        if has_udfs(entity):
             return True
     return False
 
@@ -82,7 +107,7 @@ def split_list_into_chunks(list_to_split,chunk_length):
 
 
 def clean_udfs(entity):
-    if not has_udf(entity):
+    if not has_udfs(entity):
         del_user_defined_fields_attribute(entity)
         return
     new_udf_list = []
@@ -94,7 +119,7 @@ def clean_udfs(entity):
         entity.UserDefinedFields.UserDefinedField = new_udf_list
 
 
-def clean_entity(entity):
+def clean_fields(entity):
     remove = list()
     for field in entity:
         if field[0] == 'Fields':
@@ -103,9 +128,13 @@ def clean_entity(entity):
         if field[0] != 'UserDefinedFields':
             if getattr(entity,field[0],"") in ["",None]:
                 remove.append(field[0])
-                continue             
+                continue
     for field in remove:
-        delattr(entity,field)
+        delattr(entity,field)            
+                
+                
+def clean_entity(entity):
+    clean_fields(entity)     
     clean_udfs(entity)
     
 

@@ -5,6 +5,9 @@ SUPPORTED_SUDS_VERSION = 0.7
 LOCAL_TZ='Europe/London'
 AUTOTASK_API_TZ = 'US/Eastern'
 LOCAL_TIMEZONE = timezone(LOCAL_TZ)
+
+MONKEY_PATCHING_ENABLED = True
+
 AUTOTASK_API_TIMEZONE = timezone(AUTOTASK_API_TZ)
 AUTOTASK_API_BASE_URL = 'https://webservices.autotask.net/atservices/1.5/atws.wsdl'
 AUTOTASK_API_QUERY_RESULT_LIMIT = 500
