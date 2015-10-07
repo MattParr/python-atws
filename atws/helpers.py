@@ -10,11 +10,9 @@ from constants import (AUTOTASK_API_QUERY_DATEFORMAT,
                        
 def has_udfs(entity):
     try:
-        entity.UserDefinedFields.UserDefinedField[0]
+        return len(entity.UserDefinedFields.UserDefinedField) >= 1
     except Exception:
         return False
-    else:
-        return True
 
 
 def del_udf(wrapper,entity,name):
