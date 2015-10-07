@@ -25,6 +25,10 @@ def get_udf_value(entity,name):
     return helpers.get_udf_value(entity._wrapper, entity, name)
 
 
+def del_udf(entity,name):
+    helpers.del_udf(entity._wrapper, entity, name)
+    
+
 def __getattr(entity,attr):
     if attr != 'UserDefinedFields':
         try:
@@ -71,6 +75,7 @@ BLACKLISTED_TYPES = [
 GENERIC_PATCHES = {
                    'set_udf':set_udf,
                    'get_udf':get_udf_value,
+                   'del_udf':del_udf,
                    '__getattr__':__getattr,
                    '__setattr__':__setattr
                    }

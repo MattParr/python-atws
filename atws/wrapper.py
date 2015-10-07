@@ -21,6 +21,7 @@ from constants import *
 from helpers import *
 import connection
 from connection import Connection
+from suds import sudsobject
 
 
 logger = logging.getLogger(__name__)
@@ -192,7 +193,9 @@ class Wrapper(Connection):
         return self.process(entities,'create',**kwargs)    
 
 
-    def process(self,entities,action,**kwargs):   
+    def process(self,entities,action,**kwargs):
+        if isinstance(entities, sudsobject.Object):
+            entities = [entities]
         if not entities:
             raise Exception('process entities called without anything in the entity list')
         if action not in ('create','update','delete'):
@@ -212,7 +215,7 @@ class Wrapper(Connection):
                 # @todo the failed packet needs to come in here
                 # @todo upstream in the transport - should handle retries
                 # for ssl handshake timeouts etc (transient error retries)
-                raise AutotaskProcessException(response,e)
+                raise AutotaskProcessException(e,response)
             response.add_result(result, packet)
         return response.raise_or_return_entities()
 
@@ -229,7 +232,7 @@ class Wrapper(Connection):
                 result = self.client.service.query(xml)
                 response.add_result(result, query)
             except Exception as e:
-                raise AutotaskProcessException(response,e)
+                raise AutotaskProcessException(e,response)
             if query_requires_another_call(result, query):
                 highest_id = get_highest_id(result,query.minimum_id_field)
                 query.set_minimum_id(highest_id)

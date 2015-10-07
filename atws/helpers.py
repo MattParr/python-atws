@@ -17,6 +17,11 @@ def has_udfs(entity):
         return True
 
 
+def del_udf(wrapper,entity,name):
+    udf = get_udf(wrapper, entity, name)
+    entity.UserDefinedFields.UserDefinedField.remove(udf)
+    
+
 def get_udf_value(wrapper,entity,name):
     return get_udf(wrapper,entity,name).Value
 
@@ -106,16 +111,18 @@ def split_list_into_chunks(list_to_split,chunk_length):
 
 
 def clean_udfs(entity):
-    if not has_udfs(entity):
-        del_user_defined_fields_attribute(entity)
-        return
     new_udf_list = []
-    for udf in entity.UserDefinedFields.UserDefinedField:
-        if getattr(udf,"Value",None) == None:
-            continue
-        new_udf_list.append(udf)
-    if new_udf_list:
-        entity.UserDefinedFields.UserDefinedField = new_udf_list
+    try:
+        for udf in entity.UserDefinedFields.UserDefinedField:
+            if hasattr(udf,"Value"):
+                continue
+            new_udf_list.append(udf)
+        if new_udf_list:
+            entity.UserDefinedFields.UserDefinedField = new_udf_list
+    except AttributeError:
+        pass
+    if not new_udf_list:
+        del_user_defined_fields_attribute(entity)
 
 
 def clean_fields(entity):
