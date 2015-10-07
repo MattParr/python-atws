@@ -85,7 +85,7 @@ class RequestsTransport(transport.Transport):
     # @todo: handle transient errors by retrying
     # ideally, we should only have to raise on a few errors
     # like destination unreachable, but not timeouts or transport
-    # failure eg: SSLError
+    # failure eg: SSLError below
     def __init__(self, session=None):
         transport.Transport.__init__(self)
         self._session = session or requests.Session()
@@ -93,12 +93,12 @@ class RequestsTransport(transport.Transport):
         
     @handle_errors
     def open(self, request):
-        for attempt in xrange(0,6):
+        for attempt in xrange(1,REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES + 1):
             try:
                 resp = self._session.get(request.url,timeout=(3,27))
                 break
             except SSLError:
-                if attempt == 5:
+                if attempt == REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES:
                     raise
                 continue
         return StringIO.StringIO(resp.content)
