@@ -12,6 +12,7 @@ def get_api_objects(suds_object,blacklist = []):
     types = get_api_types(suds_object, blacklist) 
     return [suds_object.factory.create(t) for t in types]
 
+
 def get_api_classes(suds_object,blacklist = []):
     objects = get_api_objects(suds_object, blacklist)
     return [obj.__class__ for obj in objects]
@@ -80,6 +81,7 @@ GENERIC_PATCHES = {
                    '__setattr__':__setattr
                    }
 
+SPECIFIC_PATCHES = {}
 
 def monkey_patch(obj,patch_name,patch_obj):
     setattr(obj,patch_name,patch_obj)
@@ -113,6 +115,8 @@ class MonkeyPatch(object):
         
     
     def specific_patch(self,entity_class):
-        pass
+        for attr_name,attr_obj in SPECIFIC_PATCHES.get(entity_class.__name__,{}):
+            monkey_patch(entity_class,attr_name,attr_obj)
+            
     
     
