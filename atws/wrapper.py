@@ -10,10 +10,6 @@ Created on 27 Sep 2015
 @todo: - a switch to turn on full object resolution.  So a ticket would come back with all the possible entities 
         eg: it would have ticket.Contact would be a contact object.  ticket.Account would be the account Object
         - it would take all the results of the query, then get all the required contacts in one call etc.
-
-
-
-
 '''
 import logging
 import re
@@ -25,6 +21,7 @@ from suds import sudsobject
 
 
 logger = logging.getLogger(__name__)
+
 
 def connect(**kwargs):
     wrapper = connection.connect(atws_version=Wrapper,**kwargs)
@@ -239,7 +236,7 @@ class Wrapper(Connection):
             else:
                 finished = True
         return response.raise_or_return_entities()
-    
+
 
     def _get_packet_limit(self,entities,**kwargs):
         multiupdate = kwargs.get('bulksend',None)
@@ -257,7 +254,7 @@ class Wrapper(Connection):
         packet.Entity = entities
         return packet
         
-    
+
     def _send_packet(self,action,packet):
         return getattr(self.client.service,action)(packet)
     

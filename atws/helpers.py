@@ -141,8 +141,3 @@ def clean_entity(entity):
     clean_fields(entity)     
     clean_udfs(entity)
     
-
-def api_datetime_string(dt):
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-        
