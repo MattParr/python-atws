@@ -3,10 +3,18 @@ Created on 27 Sep 2015
 
 @author: matt
 '''
+import query as q
 from constants import (AUTOTASK_API_QUERY_DATEFORMAT,
                        AUTOTASK_API_QUERY_RESULT_LIMIT,
                        AUTOTASK_API_TIMEZONE,
                        LOCAL_TIMEZONE)
+
+
+def copy_attributes(from_entity,to_entity):
+    attributes = [field[0] for field in from_entity]
+    for attribute in attributes:
+        setattr(to_entity,attribute,getattr(from_entity(attribute)))
+
                        
 def has_udfs(entity):
     try:
@@ -20,8 +28,12 @@ def del_udf(wrapper,entity,name):
     entity.UserDefinedFields.UserDefinedField.remove(udf)
     
 
-def get_udf_value(wrapper,entity,name):
-    return get_udf(wrapper,entity,name).Value
+def get_entity_type(entity):
+    return entity.__class__.__name__
+
+
+def get_udf_value(wrapper,entity,name,default=[]):
+    return get_udf(wrapper,entity,name,default).Value
 
 
 def get_udf(wrapper,entity,name,default=[]):
@@ -30,7 +42,7 @@ def get_udf(wrapper,entity,name,default=[]):
             if name == udf.Name:
                 return udf
     if default == []:
-        raise AttributeError('no udf named %s',name)
+        raise AttributeError('no udf named {}'.format(name))
     udf = wrapper.new('UserDefinedField')
     udf.Name = name
     udf.Value = default
@@ -140,4 +152,34 @@ def clean_fields(entity):
 def clean_entity(entity):
     clean_fields(entity)     
     clean_udfs(entity)
+
+
+
+def get_entities_by_field_equals(wrapper,entity_type,field,value,udf=False):
+    query = q.Query(entity_type)
+    query.WHERE(field,query.Equals,value,udf)
+    return wrapper.query(query)    
+
+
+def get_entity_by_id(wrapper,entity_type,entity_id):
+    result = get_entities_by_field_equals(wrapper, 
+                                          entity_type, 
+                                          'id', 
+                                          entity_id, 
+                                          False)
+    return result[0]
+
+
+def get_userdefined_field_list_items(wrapper,entity):
+    query = q.Query('UserDefinedFieldListItem')
+    query.WHERE('UdfFieldId', query.Equals, entity.id)
+    return wrapper.query(query)
+
+
+def create_userdefined_field_list_items(wrapper,entity,items):
+    list_items = [wrapper.new('UserDefinedFieldListItem',**item) 
+                  for item in items]
+    return wrapper.create(list_items)
+
+    
     

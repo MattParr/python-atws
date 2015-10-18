@@ -2,9 +2,7 @@
 Created on 27 Sep 2015
 
 @author: matt
-
-@todo: - a generic entity monkey patch plugin
-@todo: - a way of adding a custom patch to the monkey patching
+@todo: - date localisation - probably in the response class - possibly in monkey_patch getattr of entity
 @todo: - a picklist object.  pass entity,field and AT connection.  translates from API return to picklist Value
 @todo: - a switch to turn on picklist and monkey patch the values in on return eg:ticket.IssueTypeName becomes the name value
 @todo: - a switch to turn on full object resolution.  So a ticket would come back with all the possible entities 
@@ -16,6 +14,9 @@ import re
 from constants import *
 from helpers import *
 import connection
+from monkeypatch import monkey_patch
+from monkeypatch import crud
+from monkeypatch import userdefinedfields
 from connection import Connection
 from suds import sudsobject
 
@@ -26,8 +27,7 @@ logger = logging.getLogger(__name__)
 def connect(**kwargs):
     wrapper = connection.connect(atws_version=Wrapper,**kwargs)
     if MONKEY_PATCHING_ENABLED:
-        from monkey_patch import MonkeyPatch
-        MonkeyPatch(wrapper,**kwargs)
+        monkey_patch(wrapper)
     return wrapper 
 
 
@@ -162,8 +162,11 @@ class ResponseQuery(Response):
         
 class Wrapper(Connection):
     
-    def new(self,entity_type):
-        return self.client.factory.create(entity_type)
+    def new(self,entity_type,**kwargs):
+        entity = self.client.factory.create(entity_type)
+        for k,v in kwargs.iteritems():
+            setattr(entity,k,v)
+        return entity
     
     
     def get_field_info(self,entity_type):
@@ -202,16 +205,15 @@ class Wrapper(Connection):
         
         packet_limit = self._get_packet_limit(entities,**kwargs)
         packet_lists = split_list_into_chunks(entities,packet_limit)
-        packets = [self._get_entity_packet(packet_list) for packet_list in packet_lists]
-        
+
         response = ResponseAction()
-        for packet in packets:
+        for packet_list in packet_lists:
+            packet = self._get_entity_packet(packet_list)
             try:
                 result = self._send_packet(action,packet)
             except Exception as e:
                 # @todo the failed packet needs to come in here
-                # @todo upstream in the transport - should handle retries
-                # for ssl handshake timeouts etc (transient error retries)
+                # to be available in the response exception
                 raise AutotaskProcessException(e,response)
             response.add_result(result, packet)
         return response.raise_or_return_entities()

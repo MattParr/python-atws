@@ -1,6 +1,6 @@
 from datetime import datetime
 from xml.etree.ElementTree import Element, SubElement, tostring
-from helpers import format_datetime_for_api_query,split_list_into_chunks
+import helpers
 from constants import AUTOTASK_API_QUERY_ID_LIMIT
 
 
@@ -16,7 +16,7 @@ def get_queries_for_entities_by_id(entity_type,
                                    id_list,
                                    id_limit=AUTOTASK_API_QUERY_ID_LIMIT,
                                    query_function=get_id_query):
-    id_lists = split_list_into_chunks(id_list,AUTOTASK_API_QUERY_ID_LIMIT)
+    id_lists = helpers.split_list_into_chunks(id_list,AUTOTASK_API_QUERY_ID_LIMIT)
     return [query_function(entity_type,id_list) for id_list in id_lists]
 
 
@@ -127,7 +127,7 @@ class Query(object):
     
     def _process_field_value(self,value):
         if type(value) is datetime:
-            return format_datetime_for_api_query(value)
+            return helpers.format_datetime_for_api_query(value)
         return str(value)
     
     
