@@ -40,7 +40,6 @@ query.CloseBracket()
 # in ATWS XML, it would look like this
 print query.get_query_xml()
 
-
 at = atws.connect(username='<username>', password='<password>')
 # tickets is now populated with all the results possible from the above
 # query - so it could be 2150 tickets (or more), which would have been 5 API calls.
@@ -57,17 +56,26 @@ for ticket in tickets:
 updated_tickets = at.update(tickets_to_update)
 
 # make an API call for every ticket that is a Non Work Issue
+# by using the update method from within the entity
 for ticket in tickets:
 	if ticket.IssueType == atvar.Ticket_IssueType_NonWorkIssues:
 		ticket.Status = atvar.Ticket_Status_Complete
 		# update the ticket right now with an API call
 		ticket.update()
 
+# creating an entity using the create method and auto filling
+# the entity during create
+ticket = at.new('Ticket',{'Status':atvar.Ticket_IssueType_NonWorkIssues,
+                          'QueueID':atvar.Ticket_Queue_Standard,
+                          'and so on':'for other fields'})
+ticket.create()
+print ticket.id
+
+
 
 
 
 
 ```
-Wrapper
 
 
