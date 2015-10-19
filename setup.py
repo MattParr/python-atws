@@ -2,12 +2,11 @@ from distutils.core import setup
 setup(
   name = 'atws',
   packages = ['atws'],
-  version = '0.1',
+  version = '0.1a',
   install_requires=[
         'requests',
-        'json',
         'pytz',
-        'suds>=0.7.dev0'
+        'suds>=0.7.dev0',
     ],
   dependency_links = ['hg+https://bitbucket.org/jurko/suds/master/@tip#egg=suds-0.7.dev0'],
   description = 'An Autotask API wrapper',
