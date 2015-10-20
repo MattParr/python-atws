@@ -231,6 +231,18 @@ class Wrapper(Connection):
 
     def query(self,query):
         response = ResponseQuery()
+        self._query(query,response)
+        return response.raise_or_return_entities()
+    
+    
+    def queries(self,queries):
+        response = ResponseQuery()
+        for query in queries:
+            self._query(query, response)
+        return response.raise_or_return_entities()
+    
+
+    def _query(self,query,response):
         finished = False
         while not finished:
             try:
@@ -246,9 +258,8 @@ class Wrapper(Connection):
                 highest_id = get_highest_id(result,query.minimum_id_field)
                 query.set_minimum_id(highest_id)
             else:
-                finished = True
-        return response.raise_or_return_entities()
-
+                finished = True        
+        
 
     def _get_packet_limit(self,entities,**kwargs):
         multiupdate = kwargs.get('bulksend',None)
