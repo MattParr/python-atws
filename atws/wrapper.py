@@ -68,18 +68,14 @@ class Response(object):
 
 
     def add_entities(self,entities):
-        try:
-            self.successful_entities.extend(entities)
-        except TypeError:
-            self.successful_entities.append(entities)
+        for entity in entities:
+            yield entity
         self.response_count.append(len(entities))
             
 
     def raise_or_return_entities(self):
         if self.errors:
             self._raise()
-        else:
-            return self.successful_entities
     
     
     def _raise(self):
@@ -153,7 +149,8 @@ class ResponseAction(Response):
 class ResponseQuery(Response):
     def add_result(self,result,query):
         if result.ReturnCode == 1:
-            self.add_entities(get_result_entities(result))
+            for entity in self.add_entities(get_result_entities(result)):
+                yield entity
         else:
             self._add_errors(self._get_errors(result),query)
         logger.debug('Adding successful result number:{} to query response'.format(
@@ -231,15 +228,19 @@ class Wrapper(Connection):
 
     def query(self,query):
         response = ResponseQuery()
-        self._query(query,response)
-        return response.raise_or_return_entities()
+        for result in self._query(query,response):
+            for entity in result:
+                yield entity
+        response.raise_or_return_entities()
     
     
     def queries(self,queries):
         response = ResponseQuery()
         for query in queries:
-            self._query(query, response)
-        return response.raise_or_return_entities()
+            for result in self._query(query, response):
+                for entity in result:
+                    yield entity
+        response.raise_or_return_entities()
     
 
     def _query(self,query,response):
@@ -250,10 +251,13 @@ class Wrapper(Connection):
             except AttributeError:
                 xml = query            
             try:
+                logger.debug('fetching query results')
                 result = self.client.service.query(xml)
-                response.add_result(result, query)
+                logger.debug('fe')
             except Exception as e:
                 raise AutotaskProcessException(e,response)
+            else:
+                yield response.add_result(result, query)
             if query_requires_another_call(result, query):
                 highest_id = get_highest_id(result,query.minimum_id_field)
                 query.set_minimum_id(highest_id)
