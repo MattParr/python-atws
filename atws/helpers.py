@@ -90,6 +90,7 @@ def entities_have_userdefined_fields_with_values(entities):
 def clean_entities(entities):
     for entity in entities:
         clean_entity(entity)
+        yield entity
 
 
 def query_requires_another_call(result,query):

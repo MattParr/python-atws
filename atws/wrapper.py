@@ -68,9 +68,8 @@ class Response(object):
 
 
     def add_entities(self,entities):
-        for entity in entities:
-            yield entity
         self.response_count.append(len(entities))
+        return entities
             
 
     def raise_or_return_entities(self):
@@ -100,26 +99,22 @@ class ResponseAction(Response):
     
     def add_result(self,result,packet):
         if result.ReturnCode == 1:
-            self._record_success(result)
+            return self._record_successful_entities(result)
         else:
-            self._record_failure(result,packet.Entity)
-
-
-    def _record_success(self,result):
-        logger.debug('Processed a successful Action Response')
-        self._record_successful_entities(result)
+            return self._record_failure(result,packet.Entity)
 
 
     def _record_successful_entities(self,result):
         entities = get_result_entities(result)
-        self.add_entities(entities)        
+        return self.add_entities(entities)        
 
     
     def _record_failure(self,result,entities):
-        self._record_successful_entities(result)
+        entities = self._record_successful_entities(result)
         errors = [self._get_error(error,entities) for error in self._get_errors(result)]
         self.add_error({'errors':errors,
                             'packet':entities})
+        return entities
         
 
     def _get_errored_entity_index(self,message):
@@ -149,13 +144,13 @@ class ResponseAction(Response):
 class ResponseQuery(Response):
     def add_result(self,result,query):
         if result.ReturnCode == 1:
-            for entity in self.add_entities(get_result_entities(result)):
-                yield entity
+            return self.add_entities(get_result_entities(result))
         else:
             self._add_errors(self._get_errors(result),query)
         logger.debug('Adding successful result number:{} to query response'.format(
                         len(self.response_count))
-                     )    
+                     )
+        return []
     
     def _add_errors(self,errors,query):
         for error in errors:
@@ -204,27 +199,40 @@ class Wrapper(Connection):
         if action not in ('create','update','delete'):
             raise Exception('action not in create update delete: {}'.format(action))
         if not WRAPPER_DISABLE_CLEAN_ENTITIES:
-            clean_entities(entities)
+            entities_to_process = clean_entities(entities)
+        else:
+            entities_to_process = entities
         
-        packet_limit = self._get_packet_limit(entities,**kwargs)
-        packet_lists = split_list_into_chunks(entities,packet_limit)
-
         response = ResponseAction()
-        for packet_list in packet_lists:
-            packet = self._get_entity_packet(packet_list)
-            try:
-                result = self._send_packet(action,packet)
-            except Exception as e:
-                # @todo the failed packet needs to come in here
-                # to be available in the response exception
-                logger.exception('An unhandled exception in the wrapper.')
-                raise AutotaskProcessException(e,response)
-            response.add_result(result, packet)
-        try:
-            return response.raise_or_return_entities()
-        except Exception:
-            logger.exception('Action not completed successfully')
-            raise
+        packet_entities = []
+        packet_limit = self._get_packet_limit(**kwargs)
+        for entity in entities_to_process:
+            if packet_limit is not None:
+                if len(packet_entities) != packet_limit:
+                    packet_entities.append(entity)
+                    continue
+                packet = self._get_entity_packet(packet_entities)
+                for entity in self._send_packet(action, packet, response):
+                    yield entity
+                packet_entities = [entity]
+            elif has_udfs(entity):
+                packet = self._get_entity_packet([entity])
+                for entity in self._send_packet(action, packet, response):
+                    yield entity
+            else:
+                if len(packet_entities) < AUTOTASK_API_ENTITY_SEND_LIMIT:
+                    packet_entities.append(entity)
+                    continue
+                packet = self._get_entity_packet(packet_entities)
+                for entity in self._send_packet(action, packet, response):
+                    yield entity
+                packet_entities = [entity]
+        if packet_entities:
+            packet = self._get_entity_packet(packet_entities)
+            for entity in self._send_packet(action, packet, response):
+                yield entity
+        response.raise_or_return_entities()
+        
 
     def query(self,query):
         response = ResponseQuery()
@@ -253,7 +261,7 @@ class Wrapper(Connection):
             try:
                 logger.debug('fetching query results')
                 result = self.client.service.query(xml)
-                logger.debug('fe')
+                logger.debug('fetched query resutls')
             except Exception as e:
                 raise AutotaskProcessException(e,response)
             else:
@@ -265,15 +273,13 @@ class Wrapper(Connection):
                 finished = True        
         
 
-    def _get_packet_limit(self,entities,**kwargs):
+    def _get_packet_limit(self,**kwargs):
         multiupdate = kwargs.get('bulksend',None)
         if multiupdate == True:
             return kwargs.get('packet_limit',AUTOTASK_API_ENTITY_SEND_LIMIT)
         if multiupdate == False:
             return 1
-        if can_multiupdate_entities(entities):
-            return AUTOTASK_API_ENTITY_SEND_LIMIT
-        return 1        
+        return None
         
     
     def _get_entity_packet(self,entities):
@@ -282,6 +288,17 @@ class Wrapper(Connection):
         return packet
         
 
-    def _send_packet(self,action,packet):
-        return getattr(self.client.service,action)(packet)
+    def _send_packet(self,action,packet,response):
+        logger.debug('sending packet')
+        try:
+            result = getattr(self.client.service,action)(packet)
+        except Exception as e:
+            # @todo the failed packet needs to come in here
+            # to be available in the response exception
+            logger.exception('An unhandled exception in the wrapper.')
+            raise AutotaskProcessException(e)
+        else:
+            logger.debug('yielding packet response')
+            return response.add_result(result, packet)
+
     
