@@ -5,8 +5,7 @@ from constants import AUTOTASK_API_QUERY_ID_LIMIT
 
 
 def get_id_query(entity_type,id_list):
-    query = Query()
-    query.setEntity(entity_type)
+    query = Query(entity_type)
     for entity_id in id_list:
         query.OR('id',query.Equals,entity_id)
     return query
