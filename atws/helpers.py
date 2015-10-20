@@ -36,9 +36,13 @@ def get_udf_value(wrapper,entity,name,default=[]):
     return get_udf(wrapper,entity,name,default).Value
 
 
+def get_udfs(entity):
+    return entity.UserDefinedFields.UserDefinedField
+
+
 def get_udf(wrapper,entity,name,default=[]):
     if has_udfs(entity):
-        for udf in entity.UserDefinedFields.UserDefinedField:
+        for udf in get_udfs(entity):
             if name == udf.Name:
                 return udf
     if default == []:
@@ -61,7 +65,7 @@ def del_user_defined_fields_attribute(entity):
 
 
 def can_multiupdate_entities(entities):
-    if entities_have_userdefined_fields(entities):
+    if entities_have_userdefined_fields_with_values(entities):
         return False
     return True
 
@@ -71,6 +75,16 @@ def entities_have_userdefined_fields(entities):
         if has_udfs(entity):
             return True
     return False
+
+
+def entities_have_userdefined_fields_with_values(entities):
+    for entity in entities:
+        if has_udfs(entity):
+            for udf in get_udfs(entity):
+                value = getattr(udf,'Value',[])
+                if value != []:
+                    return True
+    return False    
 
 
 def clean_entities(entities):
@@ -154,7 +168,6 @@ def clean_entity(entity):
     clean_udfs(entity)
 
 
-
 def get_entities_by_field_equals(wrapper,entity_type,field,value,udf=False):
     query = q.Query(entity_type)
     query.WHERE(field,query.Equals,value,udf)
@@ -181,5 +194,48 @@ def create_userdefined_field_list_items(wrapper,entity,items):
                   for item in items]
     return wrapper.create(list_items)
 
+
+def picklist_stream_formatter(s):
+    import re
+    # Remove invalid characters
+    return re.sub('[^0-9a-zA-Z_]', '', s)
+
+
+def get_field_info(wrapper,entity_type):
+    fields = wrapper.new('GetFieldInfo')
+    fields.psObjectType = entity_type
+    return wrapper.GetFieldInfo(fields)
+
+
+def has_picklist_values(field):
+    if field.IsPickList:
+        if field.PicklistValues:
+            return True
+    return False
+        
+
+def get_field_picklist(picklist_values):
+    return {obj.Label:obj.Value for obj in picklist_values}
+
+
+def get_picklists(get_field_info_response):
+    return {field:get_field_picklist(field.PicklistValues.PickListValue) 
+     for field in get_field_info_response.Field 
+     if has_picklist_values(field)}
     
+
+def get_picklist_stream(entity_type,picklists):
+    import re
+    csnregex = re.compile('^\d+$')
+    for picklist_name,picklist in picklists.iteritems():
+        for field_name,field_value in picklist.iteritems():
+            digits = csnregex.findall(field_value)
+            if not digits:
+                field_value = '{}'.format(field_value)
+            yield "{}_{}_{} = {}\n".format(
+                entity_type,
+                picklist_stream_formatter(picklist_name['Name']),
+                picklist_stream_formatter(field_name),
+                repr(field_value)
+                )
     
