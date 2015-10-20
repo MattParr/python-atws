@@ -2,8 +2,33 @@
 Created on 17 Oct 2015
 
 @author: matt
+@todo: check if simply patching 'Entity' class is enough for the Entity patches
 '''
-
+BLACKLISTED_TYPES = [
+    'ATWSError',
+    'ATWSResponse',
+    'ATWSZoneInfo',
+    'ArrayOfATWSError',
+    'ArrayOfEntity',
+    'ArrayOfEntityInfo',
+    'ArrayOfEntityReturnInfo',
+    'ArrayOfField',
+    'ArrayOfPickListValue',
+    'ArrayOfUserDefinedField',
+    'Entity',
+    'EntityDuplicateStatus',
+    'EntityInfo',
+    'EntityReturnInfo',
+    'EntityReturnInfoDatabaseAction',
+    'Field',
+    'InstalledProductType',
+    'InstalledProductTypeUdfAssociation',
+    'PickListValue',
+    'UserDefinedField',
+    'UserDefinedFieldDefinition',
+    'UserDefinedFieldListItem',
+    ]
+    
 def get_api_types(suds_object,blacklist = []):
     return [sudtype[0].name 
             for sudtype 
@@ -26,30 +51,7 @@ def monkey_patch(obj,patch_name,patch_obj):
 
 
 class DuckPunch(object):
-    BLACKLISTED_TYPES = [
-        'ATWSError',
-        'ATWSResponse',
-        'ATWSZoneInfo',
-        'ArrayOfATWSError',
-        'ArrayOfEntity',
-        'ArrayOfEntityInfo',
-        'ArrayOfEntityReturnInfo',
-        'ArrayOfField',
-        'ArrayOfPickListValue',
-        'ArrayOfUserDefinedField',
-        'Entity',
-        'EntityDuplicateStatus',
-        'EntityInfo',
-        'EntityReturnInfo',
-        'EntityReturnInfoDatabaseAction',
-        'Field',
-        'InstalledProductType',
-        'InstalledProductTypeUdfAssociation',
-        'PickListValue',
-        'UserDefinedField',
-        'UserDefinedFieldDefinition',
-        'UserDefinedFieldListItem',
-        ]
+
     
     GENERIC_PATCHES = []
     SPECIFIC_PATCHES = []
@@ -70,7 +72,7 @@ class DuckPunch(object):
         self._wrapper = wrapper
         self._wrapper._mp = self
         
-        entity_classes = get_api_classes(wrapper.client,self.BLACKLISTED_TYPES)
+        entity_classes = get_api_classes(wrapper.client,BLACKLISTED_TYPES)
         for entity_class in entity_classes:
             self._patch_class(entity_class)
             
