@@ -63,6 +63,7 @@ class AutotaskProcessException(Exception):
 class Response(object):
     
     def add_error(self,error):
+        logger.error(error)
         self.errors.append(error)
 
 
@@ -71,6 +72,7 @@ class Response(object):
             self.successful_entities.extend(entities)
         except TypeError:
             self.successful_entities.append(entities)
+        self.response_count.append(len(entities))
             
 
     def raise_or_return_entities(self):
@@ -85,6 +87,7 @@ class Response(object):
     
     
     def __init__(self):
+        self.response_count = []
         self.errors = []
         self.successful_entities = []
         self.failed_entities = []    
@@ -107,6 +110,7 @@ class ResponseAction(Response):
 
 
     def _record_success(self,result):
+        logger.debug('Processed a successful Action Response')
         self._record_successful_entities(result)
 
 
@@ -152,7 +156,9 @@ class ResponseQuery(Response):
             self.add_entities(get_result_entities(result))
         else:
             self._add_errors(self._get_errors(result),query)
-    
+        logger.debug('Adding successful result number:{} to query response'.format(
+                        len(self.response_count))
+                     )    
     
     def _add_errors(self,errors,query):
         for error in errors:
@@ -214,10 +220,14 @@ class Wrapper(Connection):
             except Exception as e:
                 # @todo the failed packet needs to come in here
                 # to be available in the response exception
+                logger.exception('An unhandled exception in the wrapper.')
                 raise AutotaskProcessException(e,response)
             response.add_result(result, packet)
-        return response.raise_or_return_entities()
-
+        try:
+            return response.raise_or_return_entities()
+        except Exception:
+            logger.exception('Action not completed successfully')
+            raise
 
     def query(self,query):
         response = ResponseQuery()
