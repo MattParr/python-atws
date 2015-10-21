@@ -14,9 +14,10 @@ import re
 from constants import *
 from helpers import *
 import connection
-from monkeypatch import monkey_patch
-from monkeypatch import crud
-from monkeypatch import userdefinedfields
+import atws.monkeypatch # initialises a package object
+import atws.monkeypatch.crud # patches the above package object
+import atws.monkeypatch.userdefinedfields # patches the above object
+from atws.monkeypatch import monkey_patch # the above object
 from connection import Connection
 from suds import sudsobject
 

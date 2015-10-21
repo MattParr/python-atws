@@ -8,16 +8,29 @@ Features
 * returns entities with crud (create, reload, update, delete)
 * easier UDF setting/getting (get_udf, set_udf)
 * monkey patch your entities to add features you need
+
+Installation
+---
+The following command should allow pip to download the suds-jurko package from the mercurial repo on bitbucket.
+You will need the mercurial clients. (yum install mercurial)
+```
+pip install --extra-index-url https://testpypi.python.org/pypi --process-dependency-links --allow-external suds atws==0.1c
+```
+
 Quickstart
 ---
 This is a sample script showing a simple use case.
 
 First, generate a picklist module for your project.
 This will create a file for import that contains picklists from Autotask.
-It's useful for moving between development and live
+It's useful for moving between development and live, and it also allows for constants completion in your IDE.
 It needs updating any time a picklist changes in Autotask.
-atws_create_picklist <username> <password> <target_file>
+```
+create_picklist_module.py <username> <password> <target_file>
+```
 
+Example Usage
+----
 ```python
 import atws
 import atws_picklists_dev as atvar
@@ -41,8 +54,10 @@ query.CloseBracket()
 print query.get_query_xml()
 
 at = atws.connect(username='<username>', password='<password>')
-# tickets is now populated with all the results possible from the above
-# query - so it could be 2150 tickets (or more), which would have been 5 API calls.
+# at.query returns a generator which will return tickets
+# in batches of 200 until all the results possible from the above
+# query have been retrieved - so it could be 2150 tickets (or more), 
+# which would have been 5 API calls.
 tickets = at.query(query)
 
 tickets_to_update = []
@@ -70,9 +85,6 @@ ticket = at.new('Ticket',{'Status':atvar.Ticket_IssueType_NonWorkIssues,
                           'and so on':'for other fields'})
 ticket.create()
 print ticket.id
-
-
-
 
 
 
