@@ -183,6 +183,15 @@ class Wrapper(atws.connection.Connection):
     
     def create(self,entities,**kwargs):
         return self.process(entities,'create',**kwargs)
+    
+    
+    def execute(self,wrapper_response):
+        for entity in wrapper_response:
+            pass
+    
+    
+    def fetch_all(self,wrapper_response):
+        return [entity for entity in wrapper_response]
 
 
     def update(self,entities,**kwargs):

@@ -68,7 +68,30 @@ for ticket in tickets:
 # if there were 670 tickets to update, this would have been 
 # either 670 API calls if the tickets have UDF fields
 # or 4 API calls
-updated_tickets = at.update(tickets_to_update)
+response = at.update(tickets_to_update)
+# this is a generator, so updates are not performed until 
+# you cycle through the results
+for ticket in response:
+	print ticket.id
+#or you can get the results:
+updated_tickets = at.fetch_all(response)
+
+
+# this is very useful when you have something like this
+query = Query('Ticket')
+query.WHERE('id',query.GreaterThan,0) # this would be > 800000 ticket on our system.
+
+query_results = at.query(query_results)
+
+def unassign(entities):
+	for entity in entities:
+		entity.PrimaryResourceID = ''
+		yield entity
+		
+# at any given time, there are not more than 500 tickets in memory.
+# but we process over 800000 tickets.
+at.execute( at.update( unassign(query_results) ) )
+
 
 # make an API call for every ticket that is a Non Work Issue
 # by using the update method from within the entity
