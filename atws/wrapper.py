@@ -70,6 +70,7 @@ class Response(object):
 
     def add_entities(self,entities):
         self.response_count.append(len(entities))
+        self._wrapper.process_inbound_entities(entities)
         return entities
             
 
@@ -82,7 +83,8 @@ class Response(object):
         raise AutotaskAPIException(self)
     
     
-    def __init__(self):
+    def __init__(self,wrapper):
+        self._wrapper = wrapper
         self.response_count = []
         self.errors = []
         self.successful_entities = []
@@ -93,9 +95,9 @@ class Response(object):
         try:
             return result.Errors.ATWSError
         except Exception:
-            return []    
-    
-    
+            return []
+
+
 class ResponseAction(Response):
     
     def add_result(self,result,packet):
@@ -124,8 +126,8 @@ class ResponseAction(Response):
             if matched:
                 return int(matched[0])-1
         return None
-    
-    
+
+
     def _get_failed_entity(self,error,entities):
         errorKey = self._get_errored_entity_index(error.Message)
         if errorKey:
@@ -160,14 +162,16 @@ class ResponseQuery(Response):
     
         
 class Wrapper(Connection):
+    outbound_entity_functions = [datetime_to_api_timezone_entity]
+    inbound_entity_functions = [datetime_to_local_timezone_entity]
     
     def new(self,entity_type,**kwargs):
         entity = self.client.factory.create(entity_type)
         for k,v in kwargs.iteritems():
             setattr(entity,k,v)
         return entity
-    
-    
+
+
     def get_field_info(self,entity_type):
         fields = self.client.factory.create('GetFieldInfo')
         fields.psObjectType = entity_type
@@ -199,15 +203,13 @@ class Wrapper(Connection):
             raise Exception('process entities called without anything in the entity list')
         if action not in ('create','update','delete'):
             raise Exception('action not in create update delete: {}'.format(action))
-        if not WRAPPER_DISABLE_CLEAN_ENTITIES:
-            entities_to_process = clean_entities(entities)
-        else:
-            entities_to_process = entities
+
         
-        response = ResponseAction()
+        response = ResponseAction(self)
         packet_entities = []
         packet_limit = self._get_packet_limit(**kwargs)
-        for entity in entities_to_process:
+        for entity in entities:
+            self._process_outbound_entity(entity)
             if packet_limit is not None:
                 if len(packet_entities) != packet_limit:
                     packet_entities.append(entity)
@@ -236,7 +238,7 @@ class Wrapper(Connection):
         
 
     def query(self,query):
-        response = ResponseQuery()
+        response = ResponseQuery(self)
         for result in self._query(query,response):
             for entity in result:
                 yield entity
@@ -244,13 +246,28 @@ class Wrapper(Connection):
     
     
     def queries(self,queries):
-        response = ResponseQuery()
+        response = ResponseQuery(self)
         for query in queries:
             for result in self._query(query, response):
                 for entity in result:
                     yield entity
         response.raise_or_return_entities()
+
+
+    def _process_outbound_entity(self,entity):
+        if not WRAPPER_DISABLE_CLEAN_ENTITIES:
+            clean_entity(entity)
+        process_entity(entity, self.outbound_entity_functions)
+
+
+    def _process_inbound_entity(self,entity):
+        process_entity(entity, self.inbound_entity_functions)
+        
     
+    def process_inbound_entities(self,entities):
+        for entity in entities:
+            self._process_inbound_entity(entity)
+
 
     def _query(self,query,response):
         finished = False
@@ -271,8 +288,8 @@ class Wrapper(Connection):
                 highest_id = get_highest_id(result,query.minimum_id_field)
                 query.set_minimum_id(highest_id)
             else:
-                finished = True        
-        
+                finished = True
+
 
     def _get_packet_limit(self,**kwargs):
         multiupdate = kwargs.get('bulksend',None)

@@ -15,7 +15,7 @@ def copy_attributes(from_entity,to_entity):
     for attribute in attributes:
         setattr(to_entity,attribute,getattr(from_entity(attribute)))
 
-                       
+
 def has_udfs(entity):
     try:
         return len(entity.UserDefinedFields.UserDefinedField) >= 1
@@ -119,14 +119,22 @@ def query_result_count(result):
 
 
 def format_datetime_for_api_query(dt):
-    return localise_datetime(dt).strftime(AUTOTASK_API_QUERY_DATEFORMAT)
+    return datetime_to_api_timezone(dt).strftime(AUTOTASK_API_QUERY_DATEFORMAT)
 
 
-def localise_datetime(dt):
+def datetime_to_api_timezone(dt):
     if dt.tzinfo is None:
         api_dt = LOCAL_TIMEZONE.localize(dt).astimezone(AUTOTASK_API_TIMEZONE)
     else:
         api_dt = dt.astimezone(AUTOTASK_API_TIMEZONE)
+    return api_dt
+
+
+def datetime_to_local_timezone(dt):
+    if dt.tzinfo is None:
+        api_dt = AUTOTASK_API_TIMEZONE.localize(dt).astimezone(LOCAL_TIMEZONE)
+    else:
+        api_dt = dt.astimezone(LOCAL_TIMEZONE)
     return api_dt
 
 
@@ -152,21 +160,42 @@ def clean_udfs(entity):
 
 def clean_fields(entity):
     remove = list()
-    for field in entity:
-        if field[0] == 'Fields':
-            remove.append(field[0])
-            continue            
-        if field[0] != 'UserDefinedFields':
-            if getattr(entity,field[0],"") in ["",None]:
-                remove.append(field[0])
-                continue
+    for field_name,field_value in entity:
+        if field_name == 'Fields':
+            remove.append(field_name)
+            continue
+        if field_name != 'UserDefinedFields':
+            if field_value in ["",None]:
+                remove.append(field_name)
     for field in remove:
-        delattr(entity,field)            
-                
-                
+        delattr(entity,field)
+
+
 def clean_entity(entity):
-    clean_fields(entity)     
+    clean_fields(entity)
     clean_udfs(entity)
+
+
+def process_fields(entity,functions):
+    for (field_name,field_value) in entity:
+        if field_name in ('Fields','UserDefinedFields'):
+            continue
+        for fn in functions:
+            fn(entity=entity,name=field_name,value=field_value)
+
+
+def process_udfs(entity,functions):
+    try:
+        for udf in entity.UserDefinedFields.UserDefinedField:
+            for fn in functions:
+                fn(entity=entity,udf=udf)
+    except AttributeError:
+        pass
+
+
+def process_entity(entity, functions):
+    process_fields(entity, functions)
+    process_udfs(entity, functions)
 
 
 def get_entities_by_field_equals(wrapper,entity_type,field,value,udf=False):
@@ -176,10 +205,10 @@ def get_entities_by_field_equals(wrapper,entity_type,field,value,udf=False):
 
 
 def get_entity_by_id(wrapper,entity_type,entity_id):
-    result = get_entities_by_field_equals(wrapper, 
-                                          entity_type, 
-                                          'id', 
-                                          entity_id, 
+    result = get_entities_by_field_equals(wrapper,
+                                          entity_type,
+                                          'id',
+                                          entity_id,
                                           False)
     return result[0]
 
@@ -240,3 +269,33 @@ def get_picklist_stream(entity_type,picklists):
                 repr(field_value)
                 )
     
+
+def datetime_to_api_timezone_entity(**kwargs):
+    try:
+        datetime_to_api_timezone(kwargs['udf'].Value)
+    except (AttributeError,KeyError,TypeError):
+        pass
+    else:
+        return
+    try:
+        setattr(kwargs['entity'],
+                kwargs['name'],
+                datetime_to_api_timezone(kwargs['value']))
+    except (AttributeError,KeyError,TypeError):
+        pass
+
+
+def datetime_to_local_timezone_entity(**kwargs):
+    try:
+        datetime_to_local_timezone(kwargs['udf'].Value)
+    except (AttributeError,KeyError,TypeError):
+        pass
+    else:
+        return
+    try:
+        setattr(kwargs['entity'],
+                kwargs['name'],
+                datetime_to_local_timezone(kwargs['value']))
+    except (AttributeError,KeyError,TypeError):
+        pass
+
