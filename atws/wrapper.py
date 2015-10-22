@@ -2,7 +2,6 @@
 Created on 27 Sep 2015
 
 @author: matt
-@todo: - date localisation - probably in the response class - possibly in monkey_patch getattr of entity
 @todo: - a picklist object.  pass entity,field and AT connection.  translates from API return to picklist Value
 @todo: - a switch to turn on picklist and monkey patch the values in on return eg:ticket.IssueTypeName becomes the name value
 @todo: - a switch to turn on full object resolution.  So a ticket would come back with all the possible entities 
@@ -13,12 +12,10 @@ import logging
 import re
 from constants import *
 from helpers import *
-import connection
 import atws.monkeypatch # initialises a package object
 import atws.monkeypatch.crud # patches the above package object
 import atws.monkeypatch.userdefinedfields # patches the above object
-from atws.monkeypatch import monkey_patch # the above object
-from connection import Connection
+import atws.connection
 from suds import sudsobject
 
 
@@ -26,9 +23,9 @@ logger = logging.getLogger(__name__)
 
 
 def connect(**kwargs):
-    wrapper = connection.connect(atws_version=Wrapper,**kwargs)
+    wrapper = atws.connection.connect(atws_version=Wrapper,**kwargs)
     if MONKEY_PATCHING_ENABLED:
-        monkey_patch(wrapper)
+        atws.monkeypatch.monkey_patch(wrapper)
     return wrapper 
 
 
@@ -161,7 +158,7 @@ class ResponseQuery(Response):
         self.add_error(query.get_query_xml())
     
         
-class Wrapper(Connection):
+class Wrapper(atws.connection.Connection):
     outbound_entity_functions = [datetime_to_api_timezone_entity]
     inbound_entity_functions = [datetime_to_local_timezone_entity]
     
@@ -203,8 +200,6 @@ class Wrapper(Connection):
             raise Exception('process entities called without anything in the entity list')
         if action not in ('create','update','delete'):
             raise Exception('action not in create update delete: {}'.format(action))
-
-        
         response = ResponseAction(self)
         packet_entities = []
         packet_limit = self._get_packet_limit(**kwargs)
@@ -235,6 +230,11 @@ class Wrapper(Connection):
             for entity in self._send_packet(action, packet, response):
                 yield entity
         response.raise_or_return_entities()
+
+
+    def process_inbound_entities(self,entities):
+        for entity in entities:
+            self._process_inbound_entity(entity)
         
 
     def query(self,query):
@@ -243,8 +243,8 @@ class Wrapper(Connection):
             for entity in result:
                 yield entity
         response.raise_or_return_entities()
-    
-    
+
+
     def queries(self,queries):
         response = ResponseQuery(self)
         for query in queries:
@@ -262,11 +262,6 @@ class Wrapper(Connection):
 
     def _process_inbound_entity(self,entity):
         process_entity(entity, self.inbound_entity_functions)
-        
-    
-    def process_inbound_entities(self,entities):
-        for entity in entities:
-            self._process_inbound_entity(entity)
 
 
     def _query(self,query,response):
