@@ -81,16 +81,24 @@ updated_tickets = at.fetch_all(response)
 query = Query('Ticket')
 query.WHERE('id',query.GreaterThan,0) # this would be > 800000 ticket on our system.
 
-query_results = at.query(query_results)
+query_response = at.query(query_results)
 
-def unassign(entities):
-	for entity in entities:
-		entity.PrimaryResourceID = ''
-		yield entity
-		
+def unassign(tickets):
+	for ticket in tickets:
+		ticket.PrimaryResourceID = ''
+		yield ticket
+
+modified_tickets = unassign(query_response)
+update_response = at.update( modified_tickets )
+# at this point, nothing has happened yet.
+
+# now we iterate over the generator, querying tickets 500 at a time
+# and updating tickets 200 at a time
+at.execute( update_response )
+
 # at any given time, there are not more than 500 tickets in memory.
 # but we process over 800000 tickets.
-at.execute( at.update( unassign(query_results) ) )
+
 
 
 # make an API call for every ticket that is a Non Work Issue
