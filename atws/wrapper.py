@@ -262,7 +262,7 @@ class Wrapper(Connection):
             try:
                 logger.debug('fetching query results')
                 result = self.client.service.query(xml)
-                logger.debug('fetched query resutls')
+                logger.debug('fetched query results')
             except Exception as e:
                 raise AutotaskProcessException(e,response)
             else:
