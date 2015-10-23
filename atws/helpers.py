@@ -3,12 +3,14 @@ Created on 27 Sep 2015
 
 @author: matt
 '''
+import logging
 import query as q
 from constants import (AUTOTASK_API_QUERY_DATEFORMAT,
                        AUTOTASK_API_QUERY_RESULT_LIMIT,
                        AUTOTASK_API_TIMEZONE,
                        LOCAL_TIMEZONE)
 
+logger = logging.getLogger(__name__)
 
 def copy_attributes(from_entity,to_entity):
     attributes = [field[0] for field in from_entity]
@@ -124,9 +126,9 @@ def format_datetime_for_api_query(dt):
 
 def datetime_to_api_timezone(dt):
     if dt.tzinfo is None:
-        api_dt = LOCAL_TIMEZONE.localize(dt).astimezone(AUTOTASK_API_TIMEZONE)
+        api_dt = LOCAL_TIMEZONE.localize(dt).astimezone(AUTOTASK_API_TIMEZONE).replace(tzinfo=None)
     else:
-        api_dt = dt.astimezone(AUTOTASK_API_TIMEZONE)
+        api_dt = dt.astimezone(AUTOTASK_API_TIMEZONE).replace(tzinfo=None)
     return api_dt
 
 
@@ -222,7 +224,7 @@ def get_userdefined_field_list_items(wrapper,entity):
 def create_userdefined_field_list_items(wrapper,entity,items):
     list_items = [wrapper.new('UserDefinedFieldListItem',**item) 
                   for item in items]
-    return wrapper.create(list_items)
+    return wrapper.create(list_items).execute()
 
 
 def picklist_stream_formatter(s):
@@ -273,7 +275,7 @@ def get_picklist_stream(entity_type,picklists):
 def datetime_to_api_timezone_entity(**kwargs):
     try:
         datetime_to_api_timezone(kwargs['udf'].Value)
-    except (AttributeError,KeyError,TypeError):
+    except (AttributeError,KeyError,TypeError,OverflowError):
         pass
     else:
         return
@@ -281,14 +283,14 @@ def datetime_to_api_timezone_entity(**kwargs):
         setattr(kwargs['entity'],
                 kwargs['name'],
                 datetime_to_api_timezone(kwargs['value']))
-    except (AttributeError,KeyError,TypeError):
+    except (AttributeError,KeyError,TypeError,OverflowError):
         pass
 
 
 def datetime_to_local_timezone_entity(**kwargs):
     try:
         datetime_to_local_timezone(kwargs['udf'].Value)
-    except (AttributeError,KeyError,TypeError):
+    except (AttributeError,KeyError,TypeError,OverflowError):
         pass
     else:
         return
@@ -296,6 +298,6 @@ def datetime_to_local_timezone_entity(**kwargs):
         setattr(kwargs['entity'],
                 kwargs['name'],
                 datetime_to_local_timezone(kwargs['value']))
-    except (AttributeError,KeyError,TypeError):
+    except (AttributeError,KeyError,TypeError,OverflowError):
         pass
 

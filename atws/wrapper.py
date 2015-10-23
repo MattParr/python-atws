@@ -110,11 +110,11 @@ class ResponseAction(Response):
 
     
     def _record_failure(self,result,entities):
-        entities = self._record_successful_entities(result)
+        successful_entities = self._record_successful_entities(result)
         errors = [self._get_error(error,entities) for error in self._get_errors(result)]
         self.add_error({'errors':errors,
                             'packet':entities})
-        return entities
+        return successful_entities
         
 
     def _get_errored_entity_index(self,message):
@@ -147,8 +147,8 @@ class ResponseQuery(Response):
             return self.add_entities(get_result_entities(result))
         else:
             self._add_errors(self._get_errors(result),query)
-        logger.debug('Adding successful result number:{} to query response'.format(
-                        len(self.response_count))
+        logger.debug('Adding successful result number:%s to query response',
+                        len(self.response_count)
                      )
         return []
     
@@ -219,25 +219,25 @@ class Wrapper(atws.connection.Connection):
                     packet_entities.append(entity)
                     continue
                 packet = self._get_entity_packet(packet_entities)
-                for entity in self._send_packet(action, packet, response):
-                    yield entity
+                for returned_entity in self._send_packet(action, packet, response):
+                    yield returned_entity
                 packet_entities = [entity]
             elif has_udfs(entity):
                 packet = self._get_entity_packet([entity])
-                for entity in self._send_packet(action, packet, response):
-                    yield entity
+                for returned_entity in self._send_packet(action, packet, response):
+                    yield returned_entity
             else:
                 if len(packet_entities) < AUTOTASK_API_ENTITY_SEND_LIMIT:
                     packet_entities.append(entity)
                     continue
                 packet = self._get_entity_packet(packet_entities)
-                for entity in self._send_packet(action, packet, response):
-                    yield entity
+                for returned_entity in self._send_packet(action, packet, response):
+                    yield returned_entity
                 packet_entities = [entity]
         if packet_entities:
             packet = self._get_entity_packet(packet_entities)
-            for entity in self._send_packet(action, packet, response):
-                yield entity
+            for returned_entity in self._send_packet(action, packet, response):
+                yield returned_entity
         response.raise_or_return_entities()
 
 
@@ -281,7 +281,9 @@ class Wrapper(atws.connection.Connection):
             except AttributeError:
                 xml = query            
             try:
-                logger.debug('fetching query results')
+                logger.debug('fetching query results %s/? for %s',
+                             len(response.response_count) + 1,
+                             query.entity_type)
                 result = self.client.service.query(xml)
                 logger.debug('fetched query results')
             except Exception as e:
@@ -311,7 +313,10 @@ class Wrapper(atws.connection.Connection):
         
 
     def _send_packet(self,action,packet,response):
-        logger.debug('sending packet')
+        logger.debug('%s packet containing %s %s',
+                     action,
+                     len(packet.Entity),
+                     get_entity_type(packet.Entity[0]))
         try:
             result = getattr(self.client.service,action)(packet)
         except Exception as e:

@@ -45,6 +45,10 @@ def get_attributes(wrapper,entity):
 
 
 def set_attribute(wrapper,entity,name,value):
+    try:
+        value = value.isoformat()
+    except (KeyError,TypeError,AttributeError):
+        pass
     attributes = get_attributes(wrapper,entity)
     attributes[name] = value
     set_attributes(wrapper,entity,attributes)
