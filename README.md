@@ -14,7 +14,7 @@ Installation
 The following command should allow pip to download the suds-jurko package from the mercurial repo on bitbucket.
 You will need the mercurial clients. (yum install mercurial)
 ```
-pip install --extra-index-url https://testpypi.python.org/pypi --process-dependency-links --allow-external suds atws==0.1.dev4
+pip install --extra-index-url https://testpypi.python.org/pypi --process-dependency-links --allow-external suds atws==0.1.dev6
 ```
 
 Quickstart
@@ -58,7 +58,7 @@ at = atws.connect(username='<username>', password='<password>')
 # in batches of 200 until all the results possible from the above
 # query have been retrieved - so it could be 2150 tickets (or more), 
 # which would have been 5 API calls.
-tickets = at.query(query)
+tickets = at.query(query).fetch_all()
 
 tickets_to_update = []
 for ticket in tickets:
@@ -68,33 +68,35 @@ for ticket in tickets:
 # if there were 670 tickets to update, this would have been 
 # either 670 API calls if the tickets have UDF fields
 # or 4 API calls
-response = at.update(tickets_to_update)
+update_cursor = at.update(tickets_to_update)
 # this is a generator, so updates are not performed until 
 # you cycle through the results
 for ticket in response:
 	print ticket.id
 #or you can get the results:
-updated_tickets = at.fetch_all(response)
+updated_tickets = update_cursor.fetch_all()
+#or you can just do the update and discard the results
+update_cursor.execute()
 
 
 # this is very useful when you have something like this
 query = Query('Ticket')
 query.WHERE('id',query.GreaterThan,0) # this would be > 800000 ticket on our system.
 
-query_response = at.query(query_results)
+query_cursor = at.query(query_results)
 
 def unassign(tickets):
 	for ticket in tickets:
 		ticket.PrimaryResourceID = ''
 		yield ticket
 
-modified_tickets = unassign(query_response)
-update_response = at.update( modified_tickets )
+modified_tickets = unassign(query_cursor)
+update_cursor = at.update( modified_tickets )
 # at this point, nothing has happened yet.
 
 # now we iterate over the generator, querying tickets 500 at a time
 # and updating tickets 200 at a time
-at.execute( update_response )
+update_cursor.execute()
 
 # at any given time, there are not more than 500 tickets in memory.
 # but we process over 800000 tickets.
