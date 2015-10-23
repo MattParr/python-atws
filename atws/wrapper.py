@@ -156,6 +156,30 @@ class ResponseQuery(Response):
         for error in errors:
             self.add_error(error.Message)
         self.add_error(query.get_query_xml())
+
+
+class Cursor(object):
+    def __init__(self,generator):
+        self._generator = generator
+    
+    
+    def __getattr__(self,attr):
+        return getattr(self._generator,attr)
+    
+
+class QueryCursor(Cursor):
+    def fetch_all(self):
+        return [entity for entity in self._generator]    
+    
+    
+    def fetch_one(self):
+        return self._generator.next()
+    
+    
+class ActionCursor(QueryCursor):
+    def execute(self):
+        for entity in self._generator:
+            pass
     
         
 class Wrapper(atws.connection.Connection):
@@ -182,24 +206,15 @@ class Wrapper(atws.connection.Connection):
 
     
     def create(self,entities,**kwargs):
-        return self.process(entities,'create',**kwargs)
-    
-    
-    def execute(self,wrapper_response):
-        for entity in wrapper_response:
-            pass
-    
-    
-    def fetch_all(self,wrapper_response):
-        return [entity for entity in wrapper_response]
+        return ActionCursor(self.process(entities,'create',**kwargs))
 
 
     def update(self,entities,**kwargs):
-        return self.process(entities,'create',**kwargs)
+        return ActionCursor(self.process(entities,'create',**kwargs))
 
     
     def delete(self,entities,**kwargs):
-        return self.process(entities,'create',**kwargs)    
+        return ActionCursor(self.process(entities,'create',**kwargs))    
 
 
     def process(self,entities,action,**kwargs):
@@ -248,20 +263,13 @@ class Wrapper(atws.connection.Connection):
 
     def query(self,query):
         response = ResponseQuery(self)
-        for result in self._query(query,response):
-            for entity in result:
-                yield entity
-        response.raise_or_return_entities()
+        return QueryCursor(self._query(query,response))
 
 
     def queries(self,queries):
         response = ResponseQuery(self)
-        for query in queries:
-            for result in self._query(query, response):
-                for entity in result:
-                    yield entity
-        response.raise_or_return_entities()
-
+        return QueryCursor(self._queries(queries, response))
+        
 
     def _process_outbound_entity(self,entity):
         if not WRAPPER_DISABLE_CLEAN_ENTITIES:
@@ -273,7 +281,7 @@ class Wrapper(atws.connection.Connection):
         process_entity(entity, self.inbound_entity_functions)
 
 
-    def _query(self,query,response):
+    def _query(self,query,response,**kwargs):
         finished = False
         while not finished:
             try:
@@ -289,13 +297,24 @@ class Wrapper(atws.connection.Connection):
             except Exception as e:
                 raise AutotaskProcessException(e,response)
             else:
-                yield response.add_result(result, query)
+                for entity in response.add_result(result, query):
+                    yield entity
             if query_requires_another_call(result, query):
                 highest_id = get_highest_id(result,query.minimum_id_field)
                 query.set_minimum_id(highest_id)
             else:
                 finished = True
-
+        if not kwargs.get('queries',False):
+            response.raise_or_return_entities()
+    
+    
+    def _queries(self,queries,response):
+        for query in queries:
+            for result in self._query(query, response, queries=True):
+                for entity in result:
+                    yield entity
+        response.raise_or_return_entities()
+    
 
     def _get_packet_limit(self,**kwargs):
         multiupdate = kwargs.get('bulksend',None)
