@@ -140,6 +140,13 @@ def datetime_to_local_timezone(dt):
     return api_dt
 
 
+def localise_datetime(dt):
+    if dt.tzinfo is None:
+        return LOCAL_TIMEZONE.localize(dt)
+    else:
+        return dt.astimezone(LOCAL_TIMEZONE)
+
+
 def split_list_into_chunks(list_to_split,chunk_length):
     for i in xrange(0, len(list_to_split), chunk_length):
         yield list_to_split[i:i+chunk_length]
