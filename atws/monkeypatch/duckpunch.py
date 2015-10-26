@@ -21,12 +21,8 @@ BLACKLISTED_TYPES = [
     'EntityReturnInfo',
     'EntityReturnInfoDatabaseAction',
     'Field',
-    'InstalledProductType',
-    'InstalledProductTypeUdfAssociation',
     'PickListValue',
     'UserDefinedField',
-    'UserDefinedFieldDefinition',
-    'UserDefinedFieldListItem',
     ]
     
 def get_api_types(suds_object,blacklist = []):
