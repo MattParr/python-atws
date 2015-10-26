@@ -225,7 +225,7 @@ def get_entity_by_id(wrapper,entity_type,entity_id):
 def get_userdefined_field_list_items(wrapper,entity):
     query = q.Query('UserDefinedFieldListItem')
     query.WHERE('UdfFieldId', query.Equals, entity.id)
-    return wrapper.query(query)
+    return wrapper.query(query).fetch_all()
 
 
 def create_userdefined_field_list_items(wrapper,entity,items):
