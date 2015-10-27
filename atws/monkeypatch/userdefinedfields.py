@@ -25,7 +25,7 @@ def mp_getattr(entity,attr):
             return helpers.get_udf_value(entity._wrapper,entity,attr)
         except AttributeError:
             raise AttributeError( 'no attribute or udf named {}'.format(attr) )
-    return sudsobject.__getattribute__(self,attr)
+    return sudsobject.__getattribute__(entity,attr)
 
 
 def mp_setattr(self,name,value):
