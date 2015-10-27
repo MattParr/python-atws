@@ -215,11 +215,11 @@ class Wrapper(atws.connection.Connection):
 
 
     def update(self,entities,**kwargs):
-        return ActionCursor(self.process(entities,'create',**kwargs))
+        return ActionCursor(self.process(entities,'update',**kwargs))
 
     
     def delete(self,entities,**kwargs):
-        return ActionCursor(self.process(entities,'create',**kwargs))    
+        return ActionCursor(self.process(entities,'delete',**kwargs))    
 
 
     def process(self,entities,action,**kwargs):
