@@ -62,7 +62,7 @@ def set_udf(wrapper,entity,name,value):
 
 
 def del_user_defined_fields_attribute(entity):
-    if hasattr(entity,'UserdefinedFields'):
+    if hasattr(entity,'UserDefinedFields'):
         delattr(entity,'UserDefinedFields')    
 
 
