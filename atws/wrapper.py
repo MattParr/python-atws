@@ -347,7 +347,7 @@ class Wrapper(atws.connection.Connection):
             # @todo the failed packet needs to come in here
             # to be available in the response exception
             logger.exception('An unhandled exception in the wrapper.')
-            raise AutotaskProcessException(e)
+            raise AutotaskProcessException(e,response)
         else:
             logger.debug('yielding packet response')
             return response.add_result(result, packet)
