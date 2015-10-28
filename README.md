@@ -51,7 +51,7 @@ query.OR('Status',query.Equals,atvar.Ticket_Status_Complete)
 query.OR('IssueType',query.Equals,atvar.Ticket_IssueType_NonWorkIssues)
 query.CloseBracket()
 # in ATWS XML, it would look like this
-print query.get_query_xml()
+print query.pretty_print()
 
 at = atws.connect(username='<username>', password='<password>')
 # at.query returns a generator which will return tickets
