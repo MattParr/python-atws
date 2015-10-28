@@ -14,7 +14,7 @@ Installation
 The following command should allow pip to download the suds-jurko package from the mercurial repo on bitbucket.
 You will need the mercurial clients. (yum install mercurial)
 ```
-pip install --extra-index-url https://testpypi.python.org/pypi --process-dependency-links --allow-external suds atws==0.1.dev7
+pip install --extra-index-url https://testpypi.python.org/pypi --process-dependency-links --allow-external suds atws==0.1.dev8
 ```
 
 Quickstart
