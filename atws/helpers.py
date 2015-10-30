@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def copy_attributes(from_entity,to_entity):
     attributes = [field[0] for field in from_entity]
     for attribute in attributes:
-        setattr(to_entity,attribute,getattr(from_entity(attribute)))
+        setattr(to_entity,attribute,getattr(from_entity,attribute))
 
 
 def has_udfs(entity):
@@ -258,7 +258,7 @@ def get_field_picklist(picklist_values):
 
 
 def get_picklists(get_field_info_response):
-    return {field:get_field_picklist(field.PicklistValues.PickListValue) 
+    return {field.Name:get_field_picklist(field.PicklistValues.PickListValue) 
      for field in get_field_info_response.Field 
      if has_picklist_values(field)}
     
