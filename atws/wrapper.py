@@ -178,7 +178,7 @@ class QueryCursor(Cursor):
     
     
     def fetch_one(self):
-        return self._generator.next()
+        return next(self._generator,None)
     
     
 class ActionCursor(QueryCursor):
