@@ -157,8 +157,7 @@ def clean_udfs(entity):
     try:
         for udf in entity.UserDefinedFields.UserDefinedField:
             if hasattr(udf,"Value"):
-                continue
-            new_udf_list.append(udf)
+                new_udf_list.append(udf)
         if new_udf_list:
             entity.UserDefinedFields.UserDefinedField = new_udf_list
     except AttributeError:
