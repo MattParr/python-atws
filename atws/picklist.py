@@ -8,6 +8,7 @@ Created on 3 Nov 2015
 @todo: create a switch to turn on automatic picklist value reversal
 @todo: update create_picklist_module.py to use this
 '''
+import os
 from atws.helpers import get_picklists, get_field_info
 
 
@@ -33,13 +34,8 @@ class EntityPicklist(object):
 
     
     def reverse_lookup(self,value):
-        result = [k for k,v in self._picklist.iteritems()
-                  if v == value]
-        if result:
-            return result
-        else:
-            raise ValueError('{} has no value {}'.format(self.__name__,
-                                                         value))
+        return [k for k,v in self._picklist.iteritems()
+                  if v == str(value)]
 
         
     def __call__(self,lookup=[]):
@@ -51,6 +47,16 @@ class EntityPicklist(object):
     
     def __getattr__(self,attr):
         return self.lookup(attr)
+    
+    
+    def __str__(self):
+        return os.linesep.join(
+            [ '{}.{}.{} = {}'.format(self._entity_type,
+                                     self._field_name,
+                                     k,
+                                     v)
+            for k,v in self._picklist.iteritems()]
+                               )
     
         
 class EntityPicklists(object):
@@ -93,8 +99,12 @@ class Picklists(object):
     
     
     def refresh(self,entity_type):
-        field_info = get_field_info(self.at, entity_type)
+        field_info = get_field_info(self._at, entity_type)
         #@todo - create an exception if no entity of that type
+        #suds.WebFault: Server raised fault: 'System.Web.Services.Protocols.SoapException: Server was unable to process request. ---> System.NullReferenceException: Object reference not set to an instance of an object.
+        #at autotask.web.services.API.ATWSProcessor.GetFieldInfo(String psObjectType)
+        #at autotask.web.services.API.v1_5.ATWS.GetFieldInfo(String psObjectType)
+        #--- End of inner exception stack trace ---'
         picklists = get_picklists(field_info)
         try:
             self._entity_types[entity_type].refresh(picklists)
@@ -108,7 +118,7 @@ class Picklists(object):
             return self._entity_types[attr]
         except KeyError:
             self.refresh(attr)
-        return self._entity[attr]
+        return self._entity_types[attr]
             
             
         
