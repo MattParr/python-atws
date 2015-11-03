@@ -240,6 +240,7 @@ def picklist_stream_formatter(s):
 
 
 def get_field_info(wrapper,entity_type):
+    'type: wrapper :atws.Wrapper'
     fields = wrapper.new('GetFieldInfo')
     fields.psObjectType = entity_type
     return wrapper.GetFieldInfo(fields)
