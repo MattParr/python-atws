@@ -3,16 +3,10 @@ Created on 3 Nov 2015
 
 @author: matt
 
-@todo: create a picklist object that allows:
-preferrably have the wrapper auto generate these objects if needed
-but also allow them to be passed in (from a pickle cache later on)
-tp = PickList('Ticket')
-tp.Status(5) 
-'Complete'
-tp.Status('Complete')
-5
-tp.IssueType('ThisIssue')
-23455
+@todo: cache object passing with default cache storage and with ttl
+@todo: monkeypunch lazy picklists into entities by default
+@todo: create a switch to turn on automatic picklist value reversal
+@todo: update create_picklist_module.py to use this
 '''
 from atws.helpers import get_picklists, get_field_info
 
@@ -29,20 +23,24 @@ class EntityPicklist(object):
         return {self._entity_type:{self._field_name:self._picklist}}
     
     
-    def lookup(self,lookup):
+    def lookup(self,label):
         try:
-            return self._picklists.get_value(self._entity_type,
-                                             self.__name__,
-                                             lookup)
-        except (KeyError):
-            pass
-        try:
-            return self._picklists.get_label(self._entity_type,
-                                             self.__name__,
-                                             lookup)
-        except (KeyError):
-            raise ValueError('lookup not found {}'.format(lookup))
-            
+            return self._picklist[label]
+        except KeyError:
+            raise AttributeError('{} has no label {}'.format(
+                                                             self.__name__,
+                                                             label))
+
+    
+    def reverse_lookup(self,value):
+        result = [k for k,v in self._picklist.iteritems()
+                  if v == value]
+        if result:
+            return result
+        else:
+            raise ValueError('{} has no value {}'.format(self.__name__,
+                                                         value))
+
         
     def __call__(self,lookup=[]):
         if lookup != []:
@@ -52,16 +50,12 @@ class EntityPicklist(object):
         
     
     def __getattr__(self,attr):
-        try:
-            return self._picklist[attr]
-        except KeyError:
-            raise AttributeError(
-                '{} picklist has no label {}'.format(self.__name__,attr)
-                )
+        return self.lookup(attr)
     
         
 class EntityPicklists(object):
     def __init__(self,entity_type,picklists):
+        self._picklists = {}
         self.__name__ = entity_type
         self._entity_type = entity_type
         self.refresh(picklists)
@@ -83,18 +77,38 @@ class EntityPicklists(object):
                                                          picklist)
             
             
+    def __getattr__(self,attr):
+        try:
+            return self._picklists[attr]
+        except KeyError:
+            raise AttributeError('{} has no field {}'.format(self._entity_type,
+                                                            attr))
+            
+        
 class Picklists(object):
     def __init__(self,at):
-        ':param at: atws.Wrapper'
+        ':type at: atws.Wrapper'
         self._at = at
         self._entity_types = {}
     
+    
     def refresh(self,entity_type):
         field_info = get_field_info(self.at, entity_type)
+        #@todo - create an exception if no entity of that type
         picklists = get_picklists(field_info)
         try:
             self._entity_types[entity_type].refresh(picklists)
         except KeyError:
             self._entity_types[entity_type] = EntityPicklists(entity_type,
                                                               picklists)
+    
+    
+    def __getattr__(self,attr):
+        try:
+            return self._entity_types[attr]
+        except KeyError:
+            self.refresh(attr)
+        return self._entity[attr]
+            
+            
         
