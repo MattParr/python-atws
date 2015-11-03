@@ -180,7 +180,7 @@ class Cursor(object):
 
 class QueryCursor(Cursor):
     def fetch_all(self):
-        return [entity for entity in self._generator]    
+        return list(self._generator)    
     
     
     def fetch_one(self):
