@@ -5,6 +5,7 @@ Created on 27 Sep 2015
 '''
 import logging
 import query as q
+from suds import WebFault
 from constants import (AUTOTASK_API_QUERY_DATEFORMAT,
                        AUTOTASK_API_QUERY_RESULT_LIMIT,
                        AUTOTASK_API_TIMEZONE,
@@ -273,11 +274,24 @@ def get_picklist_stream(entity_type,picklists):
                 field_value = '{}'.format(field_value)
             yield "{}_{}_{} = {}\n".format(
                 entity_type,
-                picklist_stream_formatter(picklist_name['Name']),
+                picklist_stream_formatter(picklist_name),
                 picklist_stream_formatter(field_name),
                 repr(field_value)
                 )
-    
+
+
+def create_atvar_module(at,entities,file_name):
+    with open(file_name,"w") as a: 
+        for entity_type in entities:
+            try:
+                field_info_response = get_field_info(at,entity_type)
+            except WebFault:
+                pass
+            else:
+                picklists = get_picklists(field_info_response)
+                for line in get_picklist_stream(entity_type,picklists):
+                    a.write( line ) 
+                    
 
 def datetime_to_api_timezone_entity(**kwargs):
     try:
