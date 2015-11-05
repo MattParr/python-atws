@@ -194,7 +194,7 @@ class ActionCursor(QueryCursor):
     
         
 class Wrapper(atws.connection.Connection):
-    outbound_entity_functions = [datetime_to_api_timezone_entity]
+    outbound_entity_functions = [datetime_to_api_timezone_entity, trim_empty_strings_entity]
     inbound_entity_functions = [datetime_to_local_timezone_entity]
     
     def new(self,entity_type,**kwargs):

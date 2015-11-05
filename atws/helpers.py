@@ -322,3 +322,19 @@ def datetime_to_local_timezone_entity(**kwargs):
     except (AttributeError,KeyError,TypeError,OverflowError):
         pass
 
+
+def trim_empty_strings_entity(**kwargs):
+    try:
+        kwargs['udf'].Value = kwargs['udf'].Value.trim()
+    except (AttributeError,KeyError,TypeError):
+        pass
+    else:
+        return
+    try:
+        setattr(kwargs['entity'],
+                kwargs['name'],
+                kwargs['value'].trim())
+    except (AttributeError,KeyError,TypeError):
+        pass
+    
+    
