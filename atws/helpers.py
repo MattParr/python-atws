@@ -273,7 +273,7 @@ def get_picklist_stream(entity_type,picklists):
                 field_value = '{}'.format(field_value)
             yield "{}_{}_{} = {}\n".format(
                 entity_type,
-                picklist_stream_formatter(picklist_name['Name']),
+                picklist_stream_formatter(picklist_name),
                 picklist_stream_formatter(field_name),
                 repr(field_value)
                 )
