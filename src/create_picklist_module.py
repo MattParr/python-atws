@@ -2,12 +2,9 @@
 import atws
 import os
 import argparse
-import re
-from atws.helpers import get_picklist_stream,get_picklists, get_field_info
+from atws.helpers import create_atvar_module
 from atws.monkeypatch.duckpunch import BLACKLISTED_TYPES, get_api_types
-from suds import WebFault
-
-csnregex = re.compile('^\d+$')
+   
 
 def main():
         
@@ -33,16 +30,7 @@ def main():
     else:
         entities = get_api_types(at.client, BLACKLISTED_TYPES)
     
-    a = open(args.target_path,"w")
-    for entity_type in entities:
-        try:
-            field_info_response = get_field_info(at,entity_type)
-        except WebFault:
-            pass
-        else:
-            picklists = get_picklists(field_info_response)
-            for line in get_picklist_stream(entity_type,picklists):
-                a.write( line )
+    create_atvar_module(at, entities, args.target_path)
 
 
 if __name__ == '__main__':
