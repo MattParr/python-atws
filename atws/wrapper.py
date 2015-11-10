@@ -319,8 +319,7 @@ class Wrapper(atws.connection.Connection):
     
     def _queries(self,queries,response):
         for query in queries:
-            for result in self._query(query, response, queries=True):
-                for entity in result:
+            for entity in self._query(query, response, queries=True):
                     yield entity
         response.raise_or_return_entities()
     
