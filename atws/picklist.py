@@ -49,6 +49,13 @@ class EntityPicklist(object):
         return self.lookup(attr)
     
     
+    def __getitem__(self,item):
+        try:
+            return self.lookup(item)
+        except AttributeError:
+            raise KeyError
+    
+    
     def __str__(self):
         return os.linesep.join(
             [ '{}.{}.{} = {}'.format(self._entity_type,
