@@ -28,7 +28,7 @@ class EntityPicklist(object):
         try:
             return self._picklist[label]
         except KeyError:
-            raise AttributeError('{} has no label {}'.format(
+            raise ValueError('{} has no label {}'.format(
                                                              self.__name__,
                                                              label))
 
@@ -46,14 +46,14 @@ class EntityPicklist(object):
         
     
     def __getattr__(self,attr):
-        return self.lookup(attr)
+        try: 
+            return self.lookup(attr)
+        except ValueError as e:
+            raise AttributeError(e)
     
     
     def __getitem__(self,item):
-        try:
-            return self.lookup(item)
-        except AttributeError:
-            raise KeyError
+        return self._picklist[item]
     
     
     def __str__(self):
