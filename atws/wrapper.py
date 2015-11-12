@@ -2,7 +2,6 @@
 Created on 27 Sep 2015
 
 @author: matt
-@todo: - a picklist object.  pass entity,field and AT connection.  translates from API return to picklist Value
 @todo: - a switch to turn on picklist and monkey patch the values in on return eg:ticket.IssueTypeName becomes the name value
 @todo: - a switch to turn on full object resolution.  So a ticket would come back with all the possible entities 
         eg: it would have ticket.Contact would be a contact object.  ticket.Account would be the account Object
