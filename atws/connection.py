@@ -42,7 +42,10 @@ def get_zone_id(username):
 
 def get_zone_wsdl(username):
     url = get_zone_url(username)
-    return url.replace('asmx','wsdl')
+    try:
+        return url.replace('asmx','wsdl')
+    except AttributeError:
+        raise ValueError('Username:{} failed to resolve to a zone'.format(username))
 
 
 def disable_warnings():
