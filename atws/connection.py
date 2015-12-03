@@ -48,6 +48,13 @@ def get_zone_wsdl(username):
         raise ValueError('Username:{} failed to resolve to a zone'.format(username))
 
 
+def get_connection_url(**kwargs):
+    try:
+        return kwargs['url']
+    except KeyError:
+        return get_zone_wsdl(kwargs['username'])
+
+    
 def disable_warnings():
     import requests.packages
     requests.packages.urllib3.disable_warnings()
@@ -61,7 +68,10 @@ def connect(**kwargs):
         session = requests.Session()
         session.auth = (kwargs['username'],kwargs['password'])        
         transport = client_options.setdefault('transport',RequestsTransport(session))
-    client_options['url'] = kwargs.get('url',get_zone_wsdl(kwargs['username']))
+    
+    url = get_connection_url(**kwargs)
+
+    client_options['url'] = url
     obj = kwargs.get('atws_version',Connection)
     return obj(**kwargs)
 
