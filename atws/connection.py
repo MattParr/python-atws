@@ -61,7 +61,7 @@ def connect(**kwargs):
         session = requests.Session()
         session.auth = (kwargs['username'],kwargs['password'])        
         transport = client_options.setdefault('transport',RequestsTransport(session))
-    client_options.setdefault('url',get_zone_wsdl(kwargs['username']))
+    client_options['url'] = kwargs.get('url',get_zone_wsdl(kwargs['username']))
     obj = kwargs.get('atws_version',Connection)
     return obj(**kwargs)
 
