@@ -25,6 +25,8 @@ except ImportError:
     import StringIO
 
 
+MAX_RETRIES = REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES
+
 def get_zone_info(username):
     client = suds.client.Client(url=AUTOTASK_API_BASE_URL)
     return client.service.getZoneInfo(username)
@@ -66,11 +68,12 @@ def connect(**kwargs):
         disable_warnings()
     if USE_REQUEST_TRANSPORT_TYPE:
         session = requests.Session()
-        session.auth = (kwargs['username'],kwargs['password'])        
+        session.auth = (kwargs['username'],kwargs['password'])
+        session.mount("http://", requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
+        session.mount("https://", requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
         transport = client_options.setdefault('transport',RequestsTransport(session))
     
     url = get_connection_url(**kwargs)
-
     client_options['url'] = url
     obj = kwargs.get('atws_version',Connection)
     return obj(**kwargs)
