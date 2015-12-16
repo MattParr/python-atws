@@ -14,8 +14,8 @@ suds_version = float(suds.__version__[:3])
 logger.debug('Suds Version %s', suds_version)
 
 if suds_version < 0.7:
-    logger.warning('Suds version (%s) not supported. Please use 0.7'.format(
-        suds_version))
+    logger.warning('Suds version (%s) not supported. Please use 0.7',
+                   suds_version)
 
 import requests
 import functools
@@ -71,10 +71,12 @@ def connect(**kwargs):
     if USE_REQUEST_TRANSPORT_TYPE:
         session = requests.Session()
         session.auth = (kwargs['username'],kwargs['password'])
-        session.mount("http://", requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
-        session.mount("https://", requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
-        transport = client_options.setdefault('transport',RequestsTransport(
-            session))
+        session.mount("http://", 
+                      requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
+        session.mount("https://", 
+                      requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
+        transport = client_options.setdefault('transport',
+                                              RequestsTransport(session))
     
     url = get_connection_url(**kwargs)
     client_options['url'] = url
