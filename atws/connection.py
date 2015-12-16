@@ -14,7 +14,8 @@ suds_version = float(suds.__version__[:3])
 logger.debug('Suds Version %s', suds_version)
 
 if suds_version < 0.7:
-    raise Exception('Suds version not supported {}'.format(suds_version))
+    logger.warning('Suds version (%s) not supported. Please use 0.7'.format(
+        suds_version))
 
 import requests
 import functools
@@ -45,7 +46,8 @@ def get_zone_wsdl(username):
     try:
         return url.replace('asmx','wsdl')
     except AttributeError:
-        raise ValueError('Username:{} failed to resolve to a zone'.format(username))
+        raise ValueError('Username:{} failed to resolve to a zone'.format(
+            username))
 
 
 def get_connection_url(**kwargs):
@@ -67,7 +69,8 @@ def connect(**kwargs):
     if USE_REQUEST_TRANSPORT_TYPE:
         session = requests.Session()
         session.auth = (kwargs['username'],kwargs['password'])        
-        transport = client_options.setdefault('transport',RequestsTransport(session))
+        transport = client_options.setdefault('transport',RequestsTransport(
+            session))
     
     url = get_connection_url(**kwargs)
 

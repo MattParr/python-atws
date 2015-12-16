@@ -6,17 +6,14 @@ Features
 * picklist generator
 * timestamp conversions are handled inbound and outbound
 * returns entities with crud (create, reload, update, delete)
-* easier UDF setting/getting (get_udf, set_udf)
+* easier UDF setting/getting (get_udf, set_udf) 'print entity.udf_name' will work.
 * monkey patch your entities to add features you need
 
 Installation
 ---
-The following command should allow pip to download the suds-jurko package from the mercurial repo on bitbucket.
-You will need the mercurial clients. (yum install mercurial)
 ```
-pip install --extra-index-url https://testpypi.python.org/pypi 	--process-dependency-links --allow-external suds --trusted-host bitbucket.org atws==0.1.dev12
+pip install atws
 ```
-
 Quickstart
 ---
 This is a sample script showing a simple use case.
