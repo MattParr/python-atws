@@ -36,7 +36,14 @@ def get_entity_type(entity):
 
 
 def get_udf_value(wrapper,entity,name,default=[]):
-    return get_udf(wrapper,entity,name,default).Value
+    udf = get_udf(wrapper,entity,name,default)
+    try:
+        return udf.Value
+    except AttributeError:
+        if default == []:
+            raise
+        udf.Value = default
+    return udf.Value
 
 
 def get_udfs(entity):
