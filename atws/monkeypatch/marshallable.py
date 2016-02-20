@@ -43,11 +43,11 @@ def convert_value(v):
             return v
     if isinstance(v, basestring):
         try:
-            return str(v)
+            return unicode(v)
         except TypeError:
             return v
     if isinstance(v, Decimal):
-        return str(v)
+        return unicode(v)
     return v
 
 
