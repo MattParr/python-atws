@@ -3,12 +3,15 @@ Created on 10 Jan 2016
 
 @author: matt
 '''
+import logging
 import pytz
 import atws.monkeypatch.asdict
 from datetime import datetime
 from __init__ import monkey_patch
 from atws.helpers import localise_datetime
+from decimal import Decimal
 
+logger = logging.getLogger(__name__)
 UTC = pytz.timezone('UTC')
 
 MARSHAL_MAP = {}
@@ -27,6 +30,8 @@ def convert(obj):
                 result[k].append(convert(d))
         else:
             result[k] = convert_value(v)
+    logger.debug('returning the following dictionary as marshallable')
+    logger.debug(result)
     return result
 
 
@@ -41,6 +46,8 @@ def convert_value(v):
             return str(v)
         except TypeError:
             return v
+    if isinstance(v, Decimal):
+        return str(v)
     return v
 
 
