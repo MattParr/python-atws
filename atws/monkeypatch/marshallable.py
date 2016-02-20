@@ -18,7 +18,13 @@ MARSHAL_MAP = {}
 
 
 def datetime_to_utc_isoformat(dt):
-    return localise_datetime(dt).astimezone(UTC).isoformat()
+    try:
+        return localise_datetime(dt).astimezone(UTC).isoformat()
+    except OverflowError:
+        return dt.isoformat()
+    except Exception:
+        logger.exception('failed to isoformat dt: %s', dt)
+        raise
 
 
 def convert(obj):
