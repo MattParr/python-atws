@@ -118,6 +118,7 @@ class Picklists(object):
         except KeyError:
             self._entity_types[entity_type] = EntityPicklists(entity_type,
                                                               picklists)
+        return self._entity_types[entity_type]
     
     
     def __getattr__(self,attr):
