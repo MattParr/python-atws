@@ -48,6 +48,7 @@ def get_zone_wsdl(username):
     try:
         return url.replace('asmx','wsdl')
     except AttributeError:
+        logging.exception('failed to resolve zone')
         raise ValueError('Username:{} failed to resolve to a zone'.format(
             username))
 
