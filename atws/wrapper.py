@@ -188,7 +188,7 @@ class QueryCursor(Cursor):
     
 class ActionCursor(QueryCursor):
     def execute(self):
-        for entity in self._generator:
+        for _ in self._generator:
             pass
     
         
