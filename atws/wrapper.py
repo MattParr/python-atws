@@ -237,26 +237,13 @@ class Wrapper(atws.connection.Connection):
         packet_limit = self._get_packet_limit(**kwargs)
         for entity in entities:
             self._process_outbound_entity(entity)
-            if packet_limit is not None:
-                if len(packet_entities) != packet_limit:
-                    packet_entities.append(entity)
-                    continue
-                packet = self._get_entity_packet(packet_entities)
-                for returned_entity in self._send_packet(action, packet, response):
-                    yield returned_entity
-                packet_entities = [entity]
-            elif has_udfs(entity):
-                packet = self._get_entity_packet([entity])
-                for returned_entity in self._send_packet(action, packet, response):
-                    yield returned_entity
-            else:
-                if len(packet_entities) < AUTOTASK_API_ENTITY_SEND_LIMIT:
-                    packet_entities.append(entity)
-                    continue
-                packet = self._get_entity_packet(packet_entities)
-                for returned_entity in self._send_packet(action, packet, response):
-                    yield returned_entity
-                packet_entities = [entity]
+            if len(packet_entities) != packet_limit:
+                packet_entities.append(entity)
+                continue
+            packet = self._get_entity_packet(packet_entities)
+            for returned_entity in self._send_packet(action, packet, response):
+                yield returned_entity
+            packet_entities = [entity]
         if packet_entities:
             packet = self._get_entity_packet(packet_entities)
             for returned_entity in self._send_packet(action, packet, response):
@@ -325,11 +312,10 @@ class Wrapper(atws.connection.Connection):
 
     def _get_packet_limit(self,**kwargs):
         multiupdate = kwargs.get('bulksend',None)
-        if multiupdate == True:
-            return kwargs.get('packet_limit',AUTOTASK_API_ENTITY_SEND_LIMIT)
         if multiupdate == False:
             return 1
-        return None
+        else:
+            return kwargs.get('packet_limit',AUTOTASK_API_ENTITY_SEND_LIMIT)
         
     
     def _get_entity_packet(self,entities):
