@@ -8,6 +8,7 @@ import suds.client
 import suds.transport as transport
 from constants import *
 from _ssl import SSLError
+from requests.exceptions import ConnectTimeout
 
 logger = logging.getLogger(__name__)
 suds_version = float(suds.__version__[:3])
@@ -111,15 +112,17 @@ class RequestsTransport(transport.Transport):
     def __init__(self, session=None):
         transport.Transport.__init__(self)
         self._session = session or requests.Session()
+        self.timeout = (REQUEST_TRANSPORT_TIMEOUT_CONNECT_WAIT,
+                        REQUEST_TRANSPORT_TIMEOUT_RESPONSE_WAIT)
         
         
     @handle_errors
     def open(self, request):
         for attempt in xrange(1,REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES + 1):
             try:
-                resp = self._session.get(request.url,timeout=(3,27))
+                resp = self._session.get(request.url,timeout=self.timeout)
                 break
-            except SSLError:
+            except (SSLError, ConnectTimeout):
                 if attempt == REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES:
                     raise
                 continue
@@ -128,7 +131,7 @@ class RequestsTransport(transport.Transport):
     
     @handle_errors
     def send(self, request):
-        for attempt in xrange(0,6):
+        for attempt in xrange(1,REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES + 1):
             try:
                 resp = self._session.post(
                                           request.url,
@@ -137,7 +140,7 @@ class RequestsTransport(transport.Transport):
                                           )
                 break
             except SSLError:
-                if attempt == 5:
+                if attempt == REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES:
                     raise
                 continue
         return transport.Reply(
