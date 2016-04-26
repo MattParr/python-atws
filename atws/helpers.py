@@ -156,8 +156,14 @@ def localise_datetime(dt):
 
 
 def split_list_into_chunks(list_to_split,chunk_length):
-    for i in xrange(0, len(list_to_split), chunk_length):
-        yield list_to_split[i:i+chunk_length]
+    items = []
+    for item in list_to_split:
+        if len(items) == chunk_length:
+            yield list
+            items = []
+        items.append(item)
+    if items:
+        yield items
 
 
 def clean_udfs(entity):

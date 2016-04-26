@@ -15,8 +15,25 @@ def get_queries_for_entities_by_id(entity_type,
                                    id_list,
                                    id_limit=AUTOTASK_API_QUERY_ID_LIMIT,
                                    query_function=get_id_query):
-    id_lists = helpers.split_list_into_chunks(id_list,AUTOTASK_API_QUERY_ID_LIMIT)
-    return [query_function(entity_type,id_list) for id_list in id_lists]
+    queries = yield_queries_for_entities_by_id(entity_type, id_list, id_limit, query_function)
+    return list(queries)
+
+
+def yield_queries_for_entities_by_id(entity_type,
+                                   id_list,
+                                   id_limit=AUTOTASK_API_QUERY_ID_LIMIT,
+                                   query_function=get_id_query):
+    count = 0
+    query_ids = []
+    for _id in id_list:
+        if count == id_limit:
+            yield query_function(entity_type, query_ids)
+            count = 0
+        else:
+            count += 1
+            query_ids.append(_id)
+    if count > 0:
+        yield query_function(entity_type, query_ids)
 
 
 class Query(object):
