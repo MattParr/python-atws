@@ -60,7 +60,13 @@ def get_udf(wrapper,entity,name,default=[]):
     udf = wrapper.new('UserDefinedField')
     udf.Name = name
     udf.Value = default
-    entity.UserDefinedFields.UserDefinedField.append(udf)
+    try:
+        udf_list = entity.UserDefinedFields.UserDefinedField
+    except AttributeError:
+        array_of_udfs = wrapper.new('ArrayOfUserDefinedField')
+        udf_list = array_of_udfs.UserDefinedField
+        entity.UserDefinedFields = array_of_udfs
+    udf_list.append(udf)
     return udf
 
 
@@ -75,9 +81,7 @@ def del_user_defined_fields_attribute(entity):
 
 
 def can_multiupdate_entities(entities):
-    if entities_have_userdefined_fields_with_values(entities):
-        return False
-    return True
+    True
 
 
 def entities_have_userdefined_fields(entities):
