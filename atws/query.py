@@ -1,7 +1,8 @@
 from datetime import datetime
 from xml.etree.ElementTree import Element, SubElement, tostring
 import helpers
-from constants import AUTOTASK_API_QUERY_ID_LIMIT
+from constants import (AUTOTASK_API_QUERY_ID_LIMIT, 
+                       WRAPPER_DEFAULT_GET_ALL_ENTITIES)
 
 
 def get_id_query(entity_type,id_list):
@@ -148,6 +149,7 @@ class Query(object):
     
     
     def __init__(self,entity_type = None):
+        self.get_all_entities = WRAPPER_DEFAULT_GET_ALL_ENTITIES
         self.entity_type = entity_type
         self.queryxml = Element('queryxml')
         self.entityxml = SubElement(self.queryxml, 'entity')

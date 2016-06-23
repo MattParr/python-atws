@@ -108,6 +108,8 @@ def clean_entities(entities):
 
 
 def query_requires_another_call(result,query):
+    if not query.get_all_entities:
+        return False
     try:
         query.get_query_xml()
     except AttributeError:
