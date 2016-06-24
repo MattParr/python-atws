@@ -41,7 +41,7 @@ AND
  IssueType = 'Non Work Issues'
 )
 '''
-query = atws.Query('Tickets')
+query = atws.Query('Ticket')
 query.WHERE('id',query.GreaterThan,5667)
 query.Bracket('AND')
 query.OR('Status',query.Equals,atvar.Ticket_Status_Complete)
