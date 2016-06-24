@@ -3,7 +3,7 @@ setup(
   name = 'atws',
   scripts=['src/create_picklist_module.py'],
   packages = ['atws','atws.monkeypatch'],
-  version = '0.1.7',
+  version = '0.1.8',
   install_requires=[
         'requests',
         'pytz',
