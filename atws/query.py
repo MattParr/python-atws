@@ -53,6 +53,8 @@ class Query(object):
     Like='Like'
     NotLike='NotLike'
     SoundsLike='SoundsLike'
+    
+    get_all_entities = None
 
 
     def FROM(self,entity_type):
