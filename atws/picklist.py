@@ -98,6 +98,10 @@ class EntityPicklists(object):
                                                             attr))
             
         
+    def __getitem__(self, item):
+        return self._picklists[item]
+        
+        
 class Picklists(object):
     def __init__(self,at):
         ':type at: atws.Wrapper'
@@ -129,4 +133,6 @@ class Picklists(object):
         return self._entity_types[attr]
             
             
+    def __getitem__(self, item):
+        return self.__getattr__(item)
         
