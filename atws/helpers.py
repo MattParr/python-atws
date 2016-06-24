@@ -4,6 +4,7 @@ Created on 27 Sep 2015
 @author: matt
 '''
 import logging
+import math
 import query as q
 from suds import WebFault
 from constants import (AUTOTASK_API_QUERY_DATEFORMAT,
@@ -48,6 +49,20 @@ def get_udf_value(wrapper,entity,name,default=[]):
 
 def get_udfs(entity):
     return entity.UserDefinedFields.UserDefinedField
+
+
+def get_api_threshold(wrapper):
+    result = wrapper.getThresholdAndUsageInfo()
+    message = result.EntityReturnInfoResults.EntityReturnInfo[0].Message.split()
+    threshold = int(str(message[1]).strip(";"))
+    timeframe = int(str(message[3]).strip(";"))
+    requests = int(str(message[5]).strip(";"))
+    return threshold,timeframe,requests
+    
+    
+def get_api_usage(at):
+    threshold,_,requests = get_api_threshold(at)
+    return math.ceil( ( float(requests)/float(threshold) )*100 )
 
 
 def get_udf(wrapper,entity,name,default=[]):
