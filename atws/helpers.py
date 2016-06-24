@@ -60,8 +60,8 @@ def get_api_threshold(wrapper):
     return threshold,timeframe,requests
     
     
-def get_api_usage(at):
-    threshold,_,requests = get_api_threshold(at)
+def get_api_usage(wrapper):
+    threshold,_,requests = get_api_threshold(wrapper)
     return math.ceil( ( float(requests)/float(threshold) )*100 )
 
 
