@@ -3,9 +3,10 @@ Created on 17 Oct 2015
 
 @author: matt
 '''
-from __init__ import monkey_patch
-import atws.helpers as helpers
+from __future__ import absolute_import
 from suds.sudsobject import Object as sudsobject
+from . import monkey_patch
+from .. import helpers
 
 def mp_set_udf(entity, name, value):
     helpers.set_udf(entity._wrapper, entity, name, value)

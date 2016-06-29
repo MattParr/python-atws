@@ -13,14 +13,15 @@ Created on 27 Sep 2015
 @todo: - thread safe session object - an implementation of the object that uses a different session
         - for each thread
 '''
+from __future__ import absolute_import
 import logging
 import re
-from constants import *
-from helpers import *
-import atws.monkeypatch # initialises a package object
-import atws.monkeypatch.crud # patches the above package object
-import atws.monkeypatch.userdefinedfields # patches the above object
-import atws.connection
+from .constants import *
+from .helpers import *
+from . import monkeypatch
+from .monkeypatch import crud
+from .monkeypatch import userdefinedfields
+from . import connection
 from suds import sudsobject
 
 
@@ -28,9 +29,9 @@ logger = logging.getLogger(__name__)
 
 
 def connect(**kwargs):
-    wrapper = atws.connection.connect(atws_version=Wrapper,**kwargs)
+    wrapper = connection.connect(atws_version=Wrapper,**kwargs)
     if MONKEY_PATCHING_ENABLED:
-        atws.monkeypatch.monkey_patch(wrapper)
+        monkeypatch.monkey_patch(wrapper)
     return wrapper 
 
 
@@ -192,7 +193,7 @@ class ActionCursor(QueryCursor):
             pass
     
         
-class Wrapper(atws.connection.Connection):
+class Wrapper(connection.Connection):
     outbound_entity_functions = [datetime_to_api_timezone_entity, trim_empty_strings_entity]
     inbound_entity_functions = [datetime_to_local_timezone_entity]
     
@@ -204,7 +205,7 @@ class Wrapper(atws.connection.Connection):
 
 
     def get_field_info(self,entity_type):
-        return atws.helpers.get_field_info(self, entity_type)
+        return get_field_info(self, entity_type)
 
 
     def get_udf_info(self,entity_type):

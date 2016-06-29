@@ -3,8 +3,9 @@ Created on 17 Oct 2015
 
 @author: matt
 '''
-from __init__ import monkey_patch
-from atws.helpers import get_udf_value, set_udf
+from __future__ import absolute_import
+from . import monkey_patch
+from ..helpers import get_udf_value, set_udf
 import json
 
 

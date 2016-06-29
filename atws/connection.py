@@ -3,10 +3,11 @@ Created on 27 Sep 2015
 
 @author: matt
 '''
+from __future__ import absolute_import
 import logging
 import suds.client
 import suds.transport as transport
-from constants import *
+from .constants import *
 from _ssl import SSLError
 from requests.exceptions import ConnectTimeout
 

@@ -3,9 +3,10 @@ Created on 17 Oct 2015
 
 @author: matt
 '''
-from atws import query
-from atws.helpers import get_entity_type,copy_attributes
-from __init__ import monkey_patch
+from __future__ import absolute_import
+from .. import query
+from ..helpers import get_entity_type,copy_attributes
+from . import monkey_patch
 
 
 def mp_update(entity):

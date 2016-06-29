@@ -3,11 +3,12 @@ Created on 27 Sep 2015
 
 @author: matt
 '''
+from __future__ import absolute_import
 import logging
 import math
-import query as q
+from .query import Query
 from suds import WebFault
-from constants import (AUTOTASK_API_QUERY_DATEFORMAT,
+from .constants import (AUTOTASK_API_QUERY_DATEFORMAT,
                        AUTOTASK_API_QUERY_RESULT_LIMIT,
                        AUTOTASK_API_TIMEZONE,
                        LOCAL_TIMEZONE)
@@ -242,7 +243,7 @@ def process_entity(entity, functions):
 
 
 def get_entities_by_field_equals(wrapper,entity_type,field,value,udf=False):
-    query = q.Query(entity_type)
+    query = Query(entity_type)
     query.WHERE(field,query.Equals,value,udf)
     return wrapper.query(query)    
 
@@ -257,7 +258,7 @@ def get_entity_by_id(wrapper,entity_type,entity_id):
 
 
 def get_userdefined_field_list_items(wrapper,entity):
-    query = q.Query('UserDefinedFieldListItem')
+    query = Query('UserDefinedFieldListItem')
     query.WHERE('UdfFieldId', query.Equals, entity.id)
     return wrapper.query(query).fetch_all()
 

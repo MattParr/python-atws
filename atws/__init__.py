@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 from pytz import timezone
-from wrapper import connect
-from query import Query
+from .wrapper import connect
+from .query import Query
 
 __author__ = 'Matt Parr'
 __email__ = 'matt@parr.geek.nz'

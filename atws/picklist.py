@@ -8,8 +8,9 @@ Created on 3 Nov 2015
 @todo: create a switch to turn on automatic picklist value reversal
 @todo: update create_picklist_module.py to use this
 '''
+from __future__ import absolute_import
 import os
-from atws.helpers import get_picklists, get_field_info
+from .helpers import get_picklists, get_field_info
 
 
 class EntityPicklist(object):

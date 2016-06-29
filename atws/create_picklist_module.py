@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import os
 import click
-from wrapper import connect
-from helpers import create_atvar_module
-from monkeypatch.duckpunch import BLACKLISTED_TYPES, get_api_types
+from .wrapper import connect
+from .helpers import create_atvar_module
+from .monkeypatch.duckpunch import BLACKLISTED_TYPES, get_api_types
 
 @click.command()
 @click.argument('target_path')

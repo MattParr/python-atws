@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 from datetime import datetime
 from xml.etree.ElementTree import Element, SubElement, tostring
-import helpers
-from constants import (AUTOTASK_API_QUERY_ID_LIMIT, 
+from .helpers import format_datetime_for_api_query
+from .constants import (AUTOTASK_API_QUERY_ID_LIMIT, 
                        WRAPPER_DEFAULT_GET_ALL_ENTITIES)
 
 
@@ -146,7 +147,7 @@ class Query(object):
     
     def _process_field_value(self,value):
         if type(value) is datetime:
-            return helpers.format_datetime_for_api_query(value)
+            return format_datetime_for_api_query(value)
         return str(value)
     
     
