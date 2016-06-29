@@ -36,7 +36,7 @@ setup(
                  'atws'},
     entry_points={
         'console_scripts': [
-            'atws=atws.create_picklist_module:main'
+            'create_picklist_module=atws.create_picklist_module:main'
         ]
     },
     include_package_data=True,
