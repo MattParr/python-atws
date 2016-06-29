@@ -1,19 +1,61 @@
-from distutils.core import setup
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from setuptools import setup
+
+with open('README.rst') as readme_file:
+    readme = readme_file.read()
+
+with open('HISTORY.rst') as history_file:
+    history = history_file.read()
+
+requirements = [
+    'Click>=6.0',
+    'requests',
+    'pytz',
+    'suds-jurko'
+]
+
+test_requirements = [
+    # TODO: put package test requirements here
+]
+
 setup(
-  name = 'atws',
-  scripts=['src/create_picklist_module.py'],
-  packages = ['atws','atws.monkeypatch'],
-  version = '0.1.8',
-  install_requires=[
-        'requests',
-        'pytz',
-        'suds-jurko',
+    name='atws',
+    version='0.1.8',
+    description="python-atws is a wrapper for the AutoTask SOAP webservices API",
+    long_description=readme + '\n\n' + history,
+    author="Matt Parr",
+    author_email='matt@parr.geek.nz',
+    url='https://github.com/MattParr/python-atws',
+    packages=[
+        'atws',
+        'atws.monkeypatch'
     ],
-  description = 'An Autotask API wrapper',
-  author = 'Matt Parr',
-  author_email = 'matt@parr.geek.nz',
-  url = 'https://github.com/mattparr/python-atws',
-  download_url = 'https://github.com/mattparr/python-atws/tarball/0.1',
-  keywords = ['autotask', 'soap', 'api'],
-  classifiers = [],
+    package_dir={'atws':
+                 'atws'},
+    entry_points={
+        'console_scripts': [
+            'atws=atws.create_picklist_module:main'
+        ]
+    },
+    include_package_data=True,
+    install_requires=requirements,
+    license="MIT license",
+    zip_safe=False,
+    keywords='atws Autotask API SOAP',
+    classifiers=[
+        'Development Status :: 2 - Pre-Alpha',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Natural Language :: English',
+        "Programming Language :: Python :: 2",
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+    ],
+    test_suite='tests',
+    tests_require=test_requirements
 )
