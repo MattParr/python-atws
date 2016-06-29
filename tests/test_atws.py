@@ -36,7 +36,7 @@ class TestAtws(unittest.TestCase):
         #         assert 'atws.create_picklist_module.main' in result.output
         help_result = runner.invoke(create_picklist_module.main, ['--help'])
         assert help_result.exit_code == 0
-        assert '--help  Show this message and exit.' in help_result.output
+        assert 'Show this message and exit.' in help_result.output
 
 
 if __name__ == '__main__':
