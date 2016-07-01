@@ -31,7 +31,7 @@ class TestAtws(unittest.TestCase):
             _ = atws.connect(username='failed@toresolve.com',
                               password='notright')
         except ValueError as e:
-            assert 'failed@toresolve.com failed to resolve to a zone' in e.msg 
+            assert 'failed@toresolve.com failed to resolve to a zone' in str(e) 
         
         
     def test_command_line_interface(self):
