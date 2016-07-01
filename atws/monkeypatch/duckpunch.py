@@ -4,6 +4,7 @@ Created on 17 Oct 2015
 @author: matt
 @todo: check if simply patching 'Entity' class is enough for the Entity patches
 '''
+from future.utils import iteritems
 BLACKLISTED_TYPES = [
     'ATWSError',
     'ATWSResponse',
@@ -82,7 +83,7 @@ class DuckPunch(object):
     def _generic_patch(self,entity_class):
         entity_class._wrapper = self._wrapper
         for patches in self.GENERIC_PATCHES:
-            for attr_name,attr_obj in patches.iteritems():
+            for attr_name,attr_obj in iteritems(patches):
                 monkey_patch(entity_class,attr_name,attr_obj)
         
     

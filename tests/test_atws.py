@@ -13,7 +13,7 @@ import sys
 import unittest
 from contextlib import contextmanager
 from click.testing import CliRunner
-
+import atws
 from atws import create_picklist_module
 
 
@@ -27,8 +27,13 @@ class TestAtws(unittest.TestCase):
         pass
 
     def test_000_something(self):
-        pass
-
+        try:
+            _ = atws.connect(username='failed@toresolve.com',
+                              password='notright')
+        except ValueError as e:
+            assert 'failed@toresolve.com failed to resolve to a zone' in e.msg 
+        
+        
     def test_command_line_interface(self):
         runner = CliRunner()
         #         result = runner.invoke(create_picklist_module.main)

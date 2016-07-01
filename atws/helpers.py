@@ -4,6 +4,7 @@ Created on 27 Sep 2015
 @author: matt
 '''
 from __future__ import absolute_import
+from future.utils import iteritems
 import logging
 import math
 from . import __init__ as atws
@@ -302,8 +303,8 @@ def get_picklists(get_field_info_response):
 def get_picklist_stream(entity_type,picklists):
     import re
     csnregex = re.compile('^\d+$')
-    for picklist_name,picklist in picklists.iteritems():
-        for field_name,field_value in picklist.iteritems():
+    for picklist_name,picklist in iteritems(picklists):
+        for field_name,field_value in iteritems(picklist):
             digits = csnregex.findall(field_value)
             if not digits:
                 field_value = '{}'.format(field_value)

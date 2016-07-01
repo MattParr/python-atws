@@ -4,6 +4,7 @@ Created on 27 Sep 2015
 @author: matt
 '''
 from __future__ import absolute_import
+from builtins import range
 import logging
 import suds.client
 import suds.transport as transport
@@ -28,7 +29,7 @@ except ImportError:
     try:
         from StringIO import StringIO
     except ImportError:
-        from io import StringIO
+        from io import BytesIO as StringIO
 
 MAX_RETRIES = REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES
 
@@ -121,7 +122,7 @@ class RequestsTransport(transport.Transport):
         
     @handle_errors
     def open(self, request):
-        for attempt in xrange(1,REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES + 1):
+        for attempt in range(1,REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES + 1):
             try:
                 resp = self._session.get(request.url,timeout=self.timeout)
                 break
@@ -129,12 +130,12 @@ class RequestsTransport(transport.Transport):
                 if attempt == REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES:
                     raise
                 continue
-        return StringIO.StringIO(resp.content)
+        return StringIO(resp.content)
     
     
     @handle_errors
     def send(self, request):
-        for attempt in xrange(1,REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES + 1):
+        for attempt in range(1,REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES + 1):
             try:
                 resp = self._session.post(
                                           request.url,

@@ -9,6 +9,7 @@ Created on 3 Nov 2015
 @todo: update create_picklist_module.py to use this
 '''
 from __future__ import absolute_import
+from future.utils import iteritems
 import os
 from .helpers import get_picklists, get_field_info
 
@@ -35,7 +36,7 @@ class EntityPicklist(object):
 
     
     def reverse_lookup(self,value):
-        return [k for k,v in self._picklist.iteritems()
+        return [k for k,v in iteritems(self._picklist)
                   if v == str(value)]
 
         
@@ -63,7 +64,7 @@ class EntityPicklist(object):
                                      self._field_name,
                                      k,
                                      v)
-            for k,v in self._picklist.iteritems()]
+            for k,v in iteritems(self._picklist)]
                                )
     
         
@@ -76,7 +77,7 @@ class EntityPicklists(object):
         
         
     def refresh(self,picklists):
-        for field_name,picklist in picklists.iteritems():
+        for field_name,picklist in iteritems(picklists):
             self._update_picklist_object(field_name, picklist)
         
     

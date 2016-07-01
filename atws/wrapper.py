@@ -14,6 +14,7 @@ Created on 27 Sep 2015
         - for each thread
 '''
 from __future__ import absolute_import
+from future.utils import iteritems
 import logging
 import re
 from .constants import *
@@ -199,7 +200,7 @@ class Wrapper(connection.Connection):
     
     def new(self,entity_type,**kwargs):
         entity = self.client.factory.create(entity_type)
-        for k,v in kwargs.iteritems():
+        for k,v in iteritems(kwargs):
             setattr(entity,k,v)
         return entity
 

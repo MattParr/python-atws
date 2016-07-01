@@ -2,3 +2,4 @@ Click>=6.0
 requests
 pytz
 suds-jurko>=0.6
+future

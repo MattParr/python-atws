@@ -4,6 +4,7 @@ Created on 10 Jan 2016
 @author: matt
 '''
 from __future__ import absolute_import
+from future.utils import iteritems
 import logging
 import pytz
 from decimal import Decimal
@@ -31,7 +32,7 @@ def datetime_to_utc_isoformat(dt):
 
 def convert(obj):
     result = {}
-    for k,v in obj.iteritems():
+    for k,v in iteritems(obj):
         if type(v) == list:
             result[k] = []
             for d in v:
