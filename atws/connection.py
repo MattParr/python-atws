@@ -23,10 +23,12 @@ import requests
 import functools
 import traceback
 try:
-    import cStringIO as StringIO
+    from cStringIO import StringIO 
 except ImportError:
-    import StringIO
-
+    try:
+        from StringIO import StringIO
+    except ImportError:
+        from io import StringIO
 
 MAX_RETRIES = REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES
 
