@@ -16,7 +16,7 @@ from click.testing import CliRunner
 import atws
 from atws import create_picklist_module
 
-query_test_output='<?xml version="1.0" ?>\n<queryxml>\n\t<entity>Ticket</entity>\n\t<query>\n\t\t<condition>\n\t\t\t<field>\n\t\t\t\tStatus\n\t\t\t\t<expression op="NotEqual">5</expression>\n\t\t\t</field>\n\t\t</condition>\n\t\t<condition>\n\t\t\t<condition operator="OR">\n\t\t\t\t<field>\n\t\t\t\t\tIssueType\n\t\t\t\t\t<expression op="GreaterThan">345</expression>\n\t\t\t\t</field>\n\t\t\t</condition>\n\t\t</condition>\n\t</query>\n</queryxml>\n'
+query_test_output=u'<?xml version="1.0" ?>\n<queryxml>\n\t<entity>Ticket</entity>\n\t<query>\n\t\t<condition>\n\t\t\t<field>\n\t\t\t\tStatus\n\t\t\t\t<expression op="NotEqual">5</expression>\n\t\t\t</field>\n\t\t</condition>\n\t\t<condition>\n\t\t\t<condition operator="OR">\n\t\t\t\t<field>\n\t\t\t\t\tIssueType\n\t\t\t\t\t<expression op="GreaterThan">345</expression>\n\t\t\t\t</field>\n\t\t\t</condition>\n\t\t</condition>\n\t</query>\n</queryxml>\n'
 
 class TestAtws(unittest.TestCase):
 
