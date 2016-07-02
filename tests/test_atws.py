@@ -40,7 +40,7 @@ class TestAtws(unittest.TestCase):
         query.open_bracket()
         query.OR('IssueType', query.GreaterThan, 345)
         query_output = query.pretty_print()
-        assert query_test_output == repr(query_output)
+        assert repr(query_test_output) == repr(query_output)
         
         
     def test_command_line_interface(self):
