@@ -28,7 +28,11 @@ atws is a wrapper for the AutoTask SOAP webservices API
 Features
 --------
 
-* TODO
+* Py2 and Py3 support
+* Easy, programmatic query writing (no XML required)
+* Query result generator retrieves all entities, not just 500
+* Zone discovery (you only need a username and password)
+* Picklist python module creator (IDE autofill your picklist IDs)
 
 Credits
 ---------
