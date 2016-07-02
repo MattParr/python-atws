@@ -38,10 +38,6 @@ def yield_queries_for_entities_by_id(entity_type,
         yield query_function(entity_type, query_ids)
 
 
-class QueryElement(Element):
-    __slots__ = ('parent','cursor')
-
-
 class Query(object):
     Equals='Equals'
     NotEqual='NotEqual'
@@ -82,28 +78,27 @@ class Query(object):
         attrib = {}
         if operator:
             attrib = {'operator':operator}
-        parent = self.cursor
-        self.cursor = SubElement(parent,'condition',attrib=attrib)
-        self.cursor.parent = parent
+        self._cursor = SubElement(self._cursor,'condition',attrib=attrib)
     
     
     def close_bracket(self):
-        self.cursor = self.cursor.parent
+        self._close_cursor()
         
 
     def reset(self):
-        self.cursor = self.query
-        self.query.clear()
+        self._query_elements = []
+        self._query_elements.append(self._query)
+        self._query.clear()
         self.minimum_id_xml = None
         self.minimum_id = None
         self.minimum_id_field = 'id'
 
     
     def get_query_xml(self):
-        self.entityxml.text = self.entity_type
+        self._entityxml.text = self.entity_type
         if self.minimum_id:
             self._add_min_id_field()
-        return tostring(self.queryxml)
+        return tostring(self._queryxml)
     
     
     def pretty_print(self):
@@ -114,14 +109,28 @@ class Query(object):
     def set_minimum_id(self,minimum_id,field='id'):
         self.minimum_id = minimum_id
         self.minimum_id_field = field
+        
 
+    @property
+    def _cursor(self):
+        return self._query_elements[-1]
+    
+    
+    @_cursor.setter
+    def _cursor(self, element):
+        self._query_elements.append(element)
+        
+        
+    def _close_cursor(self):
+        del(self._query_elements[-1])
+        
 
     def _add_field(self,operator,field_name,field_condition,field_value,udf=False):
         attributes = {}
         if udf:
             attributes['udf'] = 'true' 
         self.open_bracket(operator)
-        field = SubElement(self.cursor,'field', attrib=attributes)
+        field = SubElement(self._cursor,'field', attrib=attributes)
         field.text = field_name
         expression = SubElement(field,'expression',attrib={'op':field_condition})
         expression.text = self._process_field_value(field_value)
@@ -158,9 +167,9 @@ class Query(object):
     def __init__(self,entity_type = None):
         self.get_all_entities = WRAPPER_DEFAULT_GET_ALL_ENTITIES
         self.entity_type = entity_type
-        self.queryxml = QueryElement('queryxml')
-        self.entityxml = SubElement(self.queryxml, 'entity')
-        self.query = SubElement(self.queryxml, 'query')
+        self._queryxml = Element('queryxml')
+        self._entityxml = SubElement(self._queryxml, 'entity')
+        self._query = SubElement(self._queryxml, 'query')
         self.reset()
 
 
