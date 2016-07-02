@@ -35,7 +35,8 @@ query_test_output='''<?xml version="1.0" ?>
             </condition>
         </condition>
     </query>
-</queryxml>'''
+</queryxml>
+'''
 
 
 class TestAtws(unittest.TestCase):
