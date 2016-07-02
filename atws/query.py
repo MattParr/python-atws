@@ -38,6 +38,10 @@ def yield_queries_for_entities_by_id(entity_type,
         yield query_function(entity_type, query_ids)
 
 
+class QueryElement(Element):
+    __slots__ = ('parent','cursor')
+
+
 class Query(object):
     Equals='Equals'
     NotEqual='NotEqual'
@@ -154,7 +158,7 @@ class Query(object):
     def __init__(self,entity_type = None):
         self.get_all_entities = WRAPPER_DEFAULT_GET_ALL_ENTITIES
         self.entity_type = entity_type
-        self.queryxml = Element('queryxml')
+        self.queryxml = QueryElement('queryxml')
         self.entityxml = SubElement(self.queryxml, 'entity')
         self.query = SubElement(self.queryxml, 'query')
         self.reset()

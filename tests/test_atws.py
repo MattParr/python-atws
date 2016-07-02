@@ -16,6 +16,26 @@ from click.testing import CliRunner
 import atws
 from atws import create_picklist_module
 
+query_test_output='''<?xml version="1.0" ?>
+<queryxml>
+    <entity>Ticket</entity>
+    <query>
+        <condition>
+            <field>
+                Status
+                <expression op="NotEqual">5</expression>
+            </field>
+        </condition>
+        <condition>
+            <condition operator="OR">
+                <field>
+                    IssueType
+                    <expression op="GreaterThan">345</expression>
+                </field>
+            </condition>
+        </condition>
+    </query>
+</queryxml>'''
 
 
 class TestAtws(unittest.TestCase):
@@ -26,12 +46,21 @@ class TestAtws(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_000_something(self):
+    def test_000_zone_lookup_failure(self):
         try:
             _ = atws.connect(username='failed@toresolve.com',
                               password='notright')
         except ValueError as e:
             assert 'failed@toresolve.com failed to resolve to a zone' in str(e) 
+    
+    
+    def test_001_query_building_output(self):
+        query = atws.Query('Ticket')
+        query.WHERE('Status', query.NotEqual, 5)
+        query.open_bracket()
+        query.OR('IssueType', query.GreaterThan, 345)
+        query_output = query.pretty_print()
+        assert query_test_output == query_output
         
         
     def test_command_line_interface(self):
