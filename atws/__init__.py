@@ -6,7 +6,7 @@ from .query import Query
 
 __author__ = 'Matt Parr'
 __email__ = 'matt@parr.geek.nz'
-__version__ = '0.1.8'
+__version__ = '0.2.0'
 
 ATWS_API_TIMEZONE = timezone('US/Eastern')
 ATWS_ENTITY_SEND_LIMIT = 200
