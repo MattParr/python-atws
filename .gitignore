@@ -33,7 +33,6 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
-/docs/
 /old/
 # Byte-compiled / optimized / DLL files
 __pycache__/
