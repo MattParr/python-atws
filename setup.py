@@ -13,7 +13,8 @@ requirements = [
     'Click>=6.0',
     'requests',
     'pytz',
-    'suds-jurko'
+    'suds-jurko',
+    'future'
 ]
 
 test_requirements = [
