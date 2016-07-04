@@ -60,9 +60,11 @@ def get_zone_wsdl(username):
 
 def get_connection_url(**kwargs):
     try:
-        return kwargs['url']
-    except KeyError:
-        return get_zone_wsdl(kwargs['username'])
+        url = kwargs['url']
+        assert url
+    except (KeyError, AssertionError):
+        url = get_zone_wsdl(kwargs['username'])
+    return url
 
     
 def disable_warnings():
