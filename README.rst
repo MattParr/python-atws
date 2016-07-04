@@ -13,8 +13,8 @@ Python AutoTask Web Services
         :target: https://atws.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/MattParr/cookiecutter-django/shield.svg
-     :target: https://pyup.io/repos/github/MattParr/python-atws/
+.. image:: https://pyup.io/repos/github/mattparr/cookiecutter-django/shield.svg
+     :target: https://pyup.io/repos/github/mattparr/python-atws/
      :alt: Updates
 
 
