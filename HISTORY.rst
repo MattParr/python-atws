@@ -1,7 +1,20 @@
 =======
 History
 =======
-0.2.0 (2016-06-28)
+
+0.3.2 (2016-07-07)
+------------------
+
+* Py3 queries no longer failing due to encoding with BOM
+
+
+0.3.0 (2016-07-06)
+------------------
+
+* PyPI install missing requirements "future" fixed
+
+
+0.2.0 (2016-07-01)
 ------------------
 
 * Python 3 support
