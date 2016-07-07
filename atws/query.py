@@ -1,11 +1,16 @@
 from __future__ import absolute_import
+import sys
 from datetime import datetime
 from xml.etree.ElementTree import Element, SubElement, tostring
 from .helpers import format_datetime_for_api_query
 from .constants import (AUTOTASK_API_QUERY_ID_LIMIT, 
                        WRAPPER_DEFAULT_GET_ALL_ENTITIES)
 
-
+PY3 = sys.version_info >= (3, 0)
+QUERY_ENCODING = None
+if PY3:
+    QUERY_ENCODING = 'unicode'
+    
 def get_id_query(entity_type,id_list):
     query = Query(entity_type)
     for entity_id in id_list:
@@ -98,7 +103,9 @@ class Query(object):
         self._entityxml.text = self.entity_type
         if self.minimum_id:
             self._add_min_id_field()
-        return tostring(self._queryxml)
+        query_xml = tostring(self._queryxml, encoding=QUERY_ENCODING)
+        #query_xml = query_xml.encode('utf-8')
+        return query_xml
     
     
     def pretty_print(self):
