@@ -17,7 +17,7 @@ suds_version = float(suds.__version__[:3])
 logger.debug('Suds Version %s', suds_version)
 
 if suds_version < 0.7:
-    logger.warning('Suds version (%s) not supported. Please use 0.7',
+    logger.warning('Suds version (%s) not ideal. Please use 0.7',
                    suds_version)
 
 import requests
