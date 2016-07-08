@@ -9,14 +9,13 @@ import logging
 import pytz
 from decimal import Decimal
 from datetime import datetime
+from past.builtins import basestring
 from . import monkey_patch
 from . import asdict
 from ..helpers import localise_datetime
 
-
 logger = logging.getLogger(__name__)
 UTC = pytz.timezone('UTC')
-
 MARSHAL_MAP = {}
 
 
