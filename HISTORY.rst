@@ -2,6 +2,12 @@
 History
 =======
 
+0.3.4 (2016-07-07)
+------------------
+
+* Py3 marshallable no longer failing due to unicode conversion
+
+
 0.3.3 (2016-07-07)
 ------------------
 
