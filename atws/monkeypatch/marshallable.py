@@ -5,6 +5,7 @@ Created on 10 Jan 2016
 '''
 from __future__ import absolute_import
 from future.utils import iteritems
+from builtins import str
 import logging
 import pytz
 from decimal import Decimal
@@ -51,11 +52,11 @@ def convert_value(v):
             return v
     if isinstance(v, basestring):
         try:
-            return unicode(v)
+            return str(v)
         except TypeError:
             return v
     if isinstance(v, Decimal):
-        return unicode(v)
+        return str(v)
     return v
 
 
