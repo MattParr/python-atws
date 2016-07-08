@@ -2,6 +2,12 @@
 History
 =======
 
+0.3.3 (2016-07-07)
+------------------
+
+* Py3 marshallable no longer failing due to basestring comparison
+
+
 0.3.2 (2016-07-07)
 ------------------
 
