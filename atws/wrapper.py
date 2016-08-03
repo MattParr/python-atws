@@ -2,16 +2,7 @@
 Created on 27 Sep 2015
 
 @author: matt
-@todo: - a switch to turn on picklist and monkey patch the values in on return eg:ticket.IssueTypeName becomes the name value
-@todo: - a switch to turn on full object resolution.  So a ticket would come back with all the possible entities 
-        eg: it would have ticket.Contact would be a contact object.  ticket.Account would be the account Object
-        - it would take all the results of the query, then get all the required contacts in one call etc.
-@todo: - see toolkit_for_requests - threading options for actions where multiple requests are to be perfomed
-        - eg create(400 entities using 1 entity per call might run over 40 times over 10 threads)
-        - the results processed by the response object
-        - simple switch in the connect module to turn it on or off. (threaded wrapper object?)
-@todo: - thread safe session object - an implementation of the object that uses a different session
-        - for each thread
+
 '''
 from __future__ import absolute_import
 from future.utils import iteritems

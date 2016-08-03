@@ -133,14 +133,21 @@ Creating entities
 -----------------
 
 To create an entity, you must first create the object, and then submit it to 
-be processed.::
+be processed.  Note that many entities have required fields.::
 
-    new_ticket = at.new('Ticket')
-    new_ticket.Title = 'This title'
-    new_ticket.Description = 'This description'
-    
-    # if you are just submitting one ticket...
-    ticket = at.create(new_ticket).fetch_one()
+    picklists = Picklists(at)
+
+    ticket = at.new('Ticket')
+    ticket.Title = 'test ticket'
+    ticket.AccountID = 0
+    ticket.DueDateTime = datetime.now()
+    ticket.Priority = picklists['Ticket']['Priority']['Standard']
+    ticket.Status = picklists['Ticket']['Status']['New']
+    ticket.QueueID = picklists['Ticket']['QueueID']['Your Queue Name Here']
+    #if you are just submitting one ticket:
+    ticket.create() # updates the ticket object inline using CRUD patch
+    # or:
+    new_ticket = at.create(ticket).fetch_one()
     
     # if you are submitting many tickets, then you have the same querycursor
     # options.  Process in submissions of 200 entities per API call:
@@ -178,7 +185,6 @@ wrapped to provide a better interface to handle them.::
     ticket.set_udf('My Udf Name', my_new_udf_value)
     ticket.update()
     
-    # coming in version 0.2.1
     # all attributes can be accessed by index
     ticket_status = ticket['Status']
     # if the attribute is missing, UDF will be presumed

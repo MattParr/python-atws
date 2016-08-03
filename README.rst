@@ -10,7 +10,7 @@ Python AutoTask Web Services
         :target: https://travis-ci.org/MattParr/python-atws
 
 .. image:: https://readthedocs.org/projects/atws/badge/?version=latest
-        :target: https://atws.readthedocs.io/en/latest/?badge=latest
+        :target: https://atws.readthedocs.io/
         :alt: Documentation Status
 
 .. image:: https://pyup.io/repos/github/mattparr/cookiecutter-django/shield.svg
