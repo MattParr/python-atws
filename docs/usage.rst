@@ -8,10 +8,10 @@ To use Python AutoTask Web Services  in a project::
 
 To enable some of the additional features that process over every entity 
 returned by a query, the module must be imported explicitly so that it can
-monkeypunch the suds library.  CRUD and UserdefinedFields are imported by the
+monkeypatch the suds library.  CRUD and UserdefinedFields are imported by the
 wrapper by default, but the others are not enabled by default.::
 
-    import atws.monkeypunch.attributes
+    import atws.monkeypatch.attributes
     
 
 Connecting to Autotask
