@@ -39,7 +39,7 @@ Usage: create_picklist_module [OPTIONS] TARGET_PATH::
 And then you have a python module::
 
     import atvar.py
-    print atvar.TicketStatusComplete
+    print atvar.Ticket_Status_Complete
     5
     
     
