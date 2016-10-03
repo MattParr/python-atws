@@ -10,7 +10,7 @@ import os
 import logging
 import re
 import uuid
-from .constants import *
+from . import constants
 from .helpers import *
 from . import monkeypatch
 from .monkeypatch import crud
@@ -24,14 +24,23 @@ logger = logging.getLogger(__name__)
 
 
 def connect(**kwargs):
-    wrapper = connection.connect(atws_version=Wrapper,**kwargs)
-    if MONKEY_PATCHING_ENABLED:
-        monkeypatch.monkey_patch(wrapper)
-    if SUPPORT_FILES_ENABLED:
+    if constants.SUPPORT_FILES_ENABLED:
         plugin = SupportFilesPlugin()
-        wrapper.client.plugins.plugins.append(plugin)
+        client_options = kwargs.setdefault('client_options', {})
+        plugins = client_options.setdefault('plugins', [])
+        plugins.append(plugin)
+    wrapper = connection.connect(atws_version=Wrapper,**kwargs)
+    if constants.MONKEY_PATCHING_ENABLED:
+        monkeypatch.monkey_patch(wrapper)
+
     return wrapper 
 
+
+def enable_support_files(path = None):
+    constants.SUPPORT_FILES_ENABLED = True
+    if path:
+        constants.SUPPORT_FILES_LOCATION = path
+    
 
 class SupportFilesPlugin(MessagePlugin):
     '''
@@ -59,7 +68,8 @@ class SupportFilesPlugin(MessagePlugin):
     
     @property
     def file_name(self):
-        return os.path.join(SUPPORT_FILES_LOCATION, str(uuid.uuid4()) + '.xml')
+        return os.path.join(constants.SUPPORT_FILES_LOCATION, 
+                            str(uuid.uuid4()) + '.xml')
 
 
 class AutotaskAPIException(Exception):
@@ -296,7 +306,7 @@ class Wrapper(connection.Connection):
         
 
     def _process_outbound_entity(self,entity):
-        if not WRAPPER_DISABLE_CLEAN_ENTITIES:
+        if not constants.WRAPPER_DISABLE_CLEAN_ENTITIES:
             clean_entity(entity)
         process_entity(entity, self.outbound_entity_functions)
 
@@ -344,7 +354,8 @@ class Wrapper(connection.Connection):
         if multiupdate == False:
             return 1
         else:
-            return kwargs.get('packet_limit',AUTOTASK_API_ENTITY_SEND_LIMIT)
+            return kwargs.get('packet_limit',
+                              constants.AUTOTASK_API_ENTITY_SEND_LIMIT)
         
     
     def _get_entity_packet(self,entities):
