@@ -6,8 +6,10 @@ Created on 27 Sep 2015
 '''
 from __future__ import absolute_import
 from future.utils import iteritems
+import os
 import logging
 import re
+import uuid
 from .constants import *
 from .helpers import *
 from . import monkeypatch
@@ -15,6 +17,7 @@ from .monkeypatch import crud
 from .monkeypatch import userdefinedfields
 from . import connection
 from suds import sudsobject
+from suds.plugin import MessagePlugin
 
 
 logger = logging.getLogger(__name__)
@@ -24,7 +27,39 @@ def connect(**kwargs):
     wrapper = connection.connect(atws_version=Wrapper,**kwargs)
     if MONKEY_PATCHING_ENABLED:
         monkeypatch.monkey_patch(wrapper)
+    if SUPPORT_FILES_ENABLED:
+        plugin = SupportFilesPlugin()
+        wrapper.client.plugins.plugins.append(plugin)
     return wrapper 
+
+
+class SupportFilesPlugin(MessagePlugin):
+    '''
+    creates files for sending to autotask
+    set the variables:
+    constants.SUPPORT_FILES_ENABLED = True
+    constants.SUPPORT_FILES_LOCATION = 'path to save files'
+    '''
+    def sending(self, context):
+        self.write_file(context.envelope, 'sent')
+
+            
+    def received(self, context):
+        self.write_file(context.reply, 'received')
+    
+    
+    def write_file(self, output, direction):
+        file_name = self.file_name
+        with open(file_name,"w") as f:
+            logger.info('writing %s xml to %s.xml', 
+                        direction,
+                        file_name)
+            f.write(str(output))
+            
+    
+    @property
+    def file_name(self):
+        return os.path.join(SUPPORT_FILES_LOCATION, str(uuid.uuid4()) + '.xml')
 
 
 class AutotaskAPIException(Exception):
@@ -186,7 +221,8 @@ class ActionCursor(QueryCursor):
     
         
 class Wrapper(connection.Connection):
-    outbound_entity_functions = [datetime_to_api_timezone_entity, trim_empty_strings_entity]
+    outbound_entity_functions = [datetime_to_api_timezone_entity, 
+                                 trim_empty_strings_entity]
     inbound_entity_functions = [datetime_to_local_timezone_entity]
     
     def new(self,entity_type,**kwargs):
