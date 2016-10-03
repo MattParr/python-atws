@@ -76,7 +76,7 @@ class Query(object):
     
     
     def AND(self,field_name,field_condition,field_value,udf=False):
-        self._add_field(None, field_name, field_condition, field_value, udf)
+        self._add_field('AND', field_name, field_condition, field_value, udf)
         
         
     def open_bracket(self,operator=None):
@@ -135,13 +135,15 @@ class Query(object):
     def _add_field(self,operator,field_name,field_condition,field_value,udf=False):
         attributes = {}
         if udf:
-            attributes['udf'] = 'true' 
-        self.open_bracket(operator)
+            attributes['udf'] = 'true'
+        if operator:
+            self.open_bracket(operator)
         field = SubElement(self._cursor,'field', attrib=attributes)
         field.text = field_name
         expression = SubElement(field,'expression',attrib={'op':field_condition})
         expression.text = self._process_field_value(field_value)
-        self.close_bracket()
+        if operator:
+            self.close_bracket()
         return field,expression
                     
         
@@ -158,10 +160,9 @@ class Query(object):
     
     def _create_min_id_xml(self):
         minimum_id = self._process_field_value(self.minimum_id)
-        expression = self._add_field(None, 
-                                     self.minimum_id_field, 
-                                     self.GreaterThan, 
-                                     minimum_id)[1]
+        expression = self.AND(self.minimum_id_field, 
+                              self.GreaterThan,
+                              minimum_id)[1]
         self.minimum_id_xml = expression
     
     
