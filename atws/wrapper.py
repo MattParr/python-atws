@@ -16,7 +16,8 @@ from . import monkeypatch
 from .monkeypatch import crud
 from .monkeypatch import userdefinedfields
 from . import connection
-from suds import sudsobject
+from .picklist import Picklists
+from suds import sudsobject, MethodNotFound
 from suds.plugin import MessagePlugin
 
 
@@ -235,6 +236,21 @@ class Wrapper(connection.Connection):
                                  trim_empty_strings_entity]
     inbound_entity_functions = [datetime_to_local_timezone_entity]
     
+    
+    @property
+    def picklist(self):
+        try:
+            return self._picklist
+        except MethodNotFound:
+            picklist = Picklists(self)
+            self._picklist = picklist
+            return picklist
+        
+        
+    def refresh_picklist(self):
+        self._picklist = Picklists(self)
+        
+        
     def new(self,entity_type,**kwargs):
         entity = self.client.factory.create(entity_type)
         for k,v in iteritems(kwargs):
