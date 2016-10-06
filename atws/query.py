@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import sys
 from datetime import datetime
 from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.sax.saxutils import escape
 from .helpers import format_datetime_for_api_query
 from .constants import (AUTOTASK_API_QUERY_ID_LIMIT, 
                        WRAPPER_DEFAULT_GET_ALL_ENTITIES)
@@ -10,6 +11,15 @@ PY3 = sys.version_info >= (3, 0)
 QUERY_ENCODING = None
 if PY3:
     QUERY_ENCODING = 'unicode'
+
+
+XML_QUERY_ESCAPE = { '"' : '&quot;',
+                     "'" : '&apos;'}
+
+
+def query_escape(value):
+    return escape(value, XML_QUERY_ESCAPE)
+
     
 def get_id_query(entity_type,id_list):
     query = Query(entity_type)
@@ -169,7 +179,7 @@ class Query(object):
     def _process_field_value(self,value):
         if type(value) is datetime:
             return format_datetime_for_api_query(value)
-        return str(value)
+        return query_escape(str(value))
     
     
     def __init__(self,entity_type = None):
