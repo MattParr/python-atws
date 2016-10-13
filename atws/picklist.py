@@ -60,7 +60,7 @@ def get_child_label_value(label, picklistvalues, condition):
     return item.Value
 
 
-class ChildEntityPicklist(object):
+class ChildFieldPicklist(object):
     def __init__(self, parent, parent_label, child_picklist_name):
         self.child_picklist_name = child_picklist_name
         self._parent = parent
@@ -101,7 +101,7 @@ class ChildEntityPicklist(object):
     
     
 
-class EntityPicklist(object):
+class FieldPicklist(object):
     def __init__(self, entity_picklists, field_name):
         self.field_name = field_name
         self.entity_picklists = entity_picklists
@@ -139,7 +139,7 @@ class EntityPicklist(object):
             except KeyError:
                 parent_name = get_child_parent_field_name(self._picklist_info)
                 parent = self.entity_picklists[parent_name]
-                self._children[label] = ChildEntityPicklist(parent, 
+                self._children[label] = ChildFieldPicklist(parent, 
                                                             label, 
                                                             self.field_name) 
                 return self._children[label]
@@ -208,7 +208,7 @@ class EntityPicklists(object):
         try:
             return self._entity_picklist[attr]
         except KeyError:
-            self._entity_picklist[attr] = EntityPicklist(self, attr)
+            self._entity_picklist[attr] = FieldPicklist(self, attr)
             return self._entity_picklist[attr]
             
         
