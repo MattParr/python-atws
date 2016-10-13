@@ -240,15 +240,11 @@ class Wrapper(connection.Connection):
     @property
     def picklist(self):
         try:
-            return self._picklist
+            picklist = self._picklist
         except MethodNotFound:
             picklist = Picklists(self)
             self._picklist = picklist
-            return picklist
-        
-        
-    def refresh_picklist(self):
-        self._picklist = Picklists(self)
+        return picklist
         
         
     def new(self,entity_type,**kwargs):

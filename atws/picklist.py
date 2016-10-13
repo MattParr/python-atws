@@ -11,51 +11,165 @@ Created on 3 Nov 2015
 from __future__ import absolute_import
 from future.utils import iteritems
 import os
-from .helpers import get_picklists, get_field_info
+from cached_property import cached_property
+from .helpers import get_field_info
 
+
+def always_true(*args):
+    return True
+
+
+def get_index(index_label, index_name, object_list, condition = None):
+    if condition is None:
+        condition = always_true
+    index = next(index for (index, d) in enumerate(object_list) 
+                if d[index_label] == index_name and condition(d))
+    return index
+
+
+def get_field_picklist(field_name, field_info):
+    field_picklist = field_info.Field[get_index('Name', 
+                                                field_name, 
+                                                field_info.Field)]
+    return field_picklist
+
+
+def is_child_field(field_picklist):
+    child_parent_field_name = get_child_parent_field_name(field_picklist) 
+    return child_parent_field_name is not None
+
+
+def get_child_parent_field_name(field_picklist):
+    parent_field_name = field_picklist.PicklistParentValueField
+    return parent_field_name
+
+
+def get_label_value(label, picklistvalues):
+    item = picklistvalues[get_index('Label', label, picklistvalues)]
+    return item.Value
+
+
+def get_value_label(value, picklistvalues):
+    item = picklistvalues[get_index('Value', id, picklistvalues)]
+    return item.Label
+
+
+def get_child_label_value(label, picklistvalues, condition):
+    item = picklistvalues[get_index('Label', label, picklistvalues, 
+                                    condition = condition)]
+    return item.Value
+
+
+class ChildEntityPicklist(object):
+    def __init__(self, parent, parent_label, child_picklist_name):
+        self.child_picklist_name = child_picklist_name
+        self._parent = parent
+        self.parent_label = parent_label
+        
+    
+    @property
+    def __name__(self):
+        return self.child_picklist_name + '_' + self.parent_label
+    
+    
+    @property
+    def parent_value(self):
+        return self._parent[self.parent_label]
+    
+
+    @property
+    def _picklist(self):
+        return self._picklist_info.PicklistValues.PickListValue
+    
+    
+    @property
+    def _picklist_info(self):
+        return get_field_picklist(self.child_picklist_name, 
+                                  self._parent.entity_picklists._field_info)
+    
+        
+    def _condition(self, picklist_value):
+        return picklist_value.parentValue == self.parent_value
+    
+    
+    def __getitem__(self, item):
+        return self.__getattr__(item)
+    
+    
+    def __getattr__(self, attr):
+        return get_child_label_value(attr, self._picklist, self._condition)
+    
+    
 
 class EntityPicklist(object):
-    def __init__(self,entity_type,field_name,picklist):
-        self.__name__ = entity_type + '.' + field_name
-        self._field_name = field_name
-        self._entity_type = entity_type
-        self._picklist = picklist
+    def __init__(self, entity_picklists, field_name):
+        self.field_name = field_name
+        self.entity_picklists = entity_picklists
+        if self.is_child:
+            self._children = {}
+        
+        
+    @property
+    def __name__(self):
+        name = self.entity_picklists.entity_type + '_' + self.field_name
+        return name
+    
+        
+    @property
+    def _picklist(self):
+        return self._picklist_info.PicklistValues.PickListValue
+    
+    
+    @property
+    def _picklist_info(self):
+        return get_field_picklist(self.field_name, 
+                                  self.entity_picklists._field_info)
+        
+                
+    @property
+    def is_child(self):
+        return is_child_field(self._picklist_info)
+
+
+    def lookup(self, label):
+        ''' take a field_name_label and return the id'''
+        if self.is_child:
+            try:
+                return self._children[label]
+            except KeyError:
+                parent_name = get_child_parent_field_name(self._picklist_info)
+                parent = self.entity_picklists[parent_name]
+                self._children[label] = ChildEntityPicklist(parent, 
+                                                            label, 
+                                                            self.field_name) 
+                return self._children[label]
+        else:
+            return get_label_value(label, self._picklist)
+
+    
+    def reverse_lookup(self, value):
+        ''' take a field_name_id and return the label '''
+        label = get_value_label(value, self._picklist)
+        if self.is_child:
+            self.lookup(label)
+        else:
+            return label 
 
 
     def as_dict(self):
         return {self._entity_type:{self._field_name:self._picklist}}
     
-    
-    def lookup(self,label):
-        try:
-            return self._picklist[label]
-        except KeyError:
-            raise ValueError('{} has no label {}'.format(
-                                                             self.__name__,
-                                                             label))
-
-    
-    def reverse_lookup(self,value):
-        return [k for k,v in iteritems(self._picklist)
-                  if v == str(value)]
-
         
-    def __call__(self,lookup=[]):
-        if lookup != []:
-            return self.lookup(lookup)
-        else:
-            return self.as_dict()
+    def __call__(self, attr):
+        return self.__getattr__(attr)
         
     
     def __getattr__(self,attr):
-        try: 
-            return self.lookup(attr)
-        except ValueError as e:
-            raise AttributeError(e)
+        return self.lookup(attr)
     
     
     def __getitem__(self,item):
-        return self._picklist[item]
+        return self.__getattr__(item)
     
     
     def __str__(self):
@@ -69,70 +183,56 @@ class EntityPicklist(object):
     
         
 class EntityPicklists(object):
-    def __init__(self,entity_type,picklists):
-        self._picklists = {}
-        self.__name__ = entity_type
-        self._entity_type = entity_type
-        self.refresh(picklists)
+    def __init__(self,at, entity_type):
+        self._at = at
+        self.entity_type = entity_type
+        self._entity_picklist = {}
+    
+    
+    @property
+    def __name__(self):
+        return self.entity_type
+    
+        
+    @cached_property
+    def _field_info(self):
+        result = get_field_info(self._at, self.entity_type) 
+        return result
         
         
     def refresh(self,picklists):
-        for field_name,picklist in iteritems(picklists):
-            self._update_picklist_object(field_name, picklist)
+        del self._field_info
         
-    
-    def _update_picklist_object(self,field_name, picklist):
-        try:
-            self._picklists[field_name].__init__(self._entity_type,
-                                                 field_name,
-                                                 picklist)
-        except KeyError:
-            self._picklists[field_name] = EntityPicklist(self._entity_type,
-                                                         field_name,
-                                                         picklist)
-            
             
     def __getattr__(self,attr):
         try:
-            return self._picklists[attr]
+            return self._entity_picklist[attr]
         except KeyError:
-            raise AttributeError('{} has no field {}'.format(self._entity_type,
-                                                            attr))
+            self._entity_picklist[attr] = EntityPicklist(self, attr)
+            return self._entity_picklist[attr]
             
         
     def __getitem__(self, item):
-        return self._picklists[item]
+        return self.__getattr__(item)
         
         
 class Picklists(object):
     def __init__(self,at):
-        ':type at: atws.Wrapper'
         self._at = at
-        self._entity_types = {}
+        self._entity_picklists = {}
     
     
     def refresh(self,entity_type):
-        field_info = get_field_info(self._at, entity_type)
-        #@todo - create an exception if no entity of that type
-        #suds.WebFault: Server raised fault: 'System.Web.Services.Protocols.SoapException: Server was unable to process request. ---> System.NullReferenceException: Object reference not set to an instance of an object.
-        #at autotask.web.services.API.ATWSProcessor.GetFieldInfo(String psObjectType)
-        #at autotask.web.services.API.v1_5.ATWS.GetFieldInfo(String psObjectType)
-        #--- End of inner exception stack trace ---'
-        picklists = get_picklists(field_info)
-        try:
-            self._entity_types[entity_type].refresh(picklists)
-        except KeyError:
-            self._entity_types[entity_type] = EntityPicklists(entity_type,
-                                                              picklists)
-        return self._entity_types[entity_type]
-    
+        self._entity_picklists[entity_type].refresh()
+            
     
     def __getattr__(self,attr):
         try:
-            return self._entity_types[attr]
+            entity_picklists = self._entity_picklists[attr]
         except KeyError:
-            self.refresh(attr)
-        return self._entity_types[attr]
+            entity_picklists = EntityPicklists(self._at, attr)
+            self._entity_picklists[attr] = entity_picklists 
+        return entity_picklists
             
             
     def __getitem__(self, item):
