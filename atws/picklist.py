@@ -57,11 +57,28 @@ def get_child_label_value(label, picklistvalues, condition):
     return item.Value
 
 
+def child_picklist_as_dict(child_picklist):
+    child_field_dict = {}
+    for item in child_picklist._picklist:
+        parent_item_label = child_picklist.parent_item_label
+        parent_item_dict = child_field_dict.setdefault(parent_item_label, {})
+        parent_item_dict[item.Label] = item.Value
+        
+    return {child_picklist.entity_type:
+            {child_picklist.field_name:child_field_dict}}
+    
+    
+def picklist_as_dict(picklist):
+    return {picklist.entity_type:
+            {picklist.field_name:
+             {item.Label:item.Value for item in picklist._picklist}}}
+    
+    
 class ChildFieldPicklist(object):
-    def __init__(self, parent, parent_label, child_picklist_name):
-        self.child_picklist_name = child_picklist_name
+    def __init__(self, parent, parent_item_label, field_name):
+        self.field_name = field_name
         self._parent = parent
-        self.parent_label = parent_label
+        self.parent_item_label = parent_item_label
         
     
     @property
@@ -70,7 +87,7 @@ class ChildFieldPicklist(object):
     
     
     @property
-    def parent_value(self):
+    def parent_item_value(self):
         return self._parent[self.parent_label]
     
 
@@ -86,7 +103,7 @@ class ChildFieldPicklist(object):
     
         
     def _condition(self, picklist_value):
-        return picklist_value.parentValue == self.parent_value
+        return picklist_value.parentValue == self.parent_item_value
     
     
     def __getitem__(self, item):
@@ -107,8 +124,29 @@ class FieldPicklist(object):
         
         
     @property
+    def entity_type(self):
+        return self.entity_picklists.entity_type
+    
+        
+    @property
+    def parent(self):
+        if self.is_child:
+            return self.entity_picklists[self.parent_name]
+        else:
+            raise AttributeError('field does not have a parent')
+        
+        
+    @property
+    def parent_name(self):
+        if self.is_child:
+            return get_child_parent_field_name(self._picklist_info)
+        else:
+            raise AttributeError('field does not have a parent')
+        
+        
+    @property
     def __name__(self):
-        name = self.entity_picklists.entity_type + '_' + self.field_name
+        name = self.entity_type + '_' + self.field_name
         return name
     
         
@@ -120,9 +158,14 @@ class FieldPicklist(object):
     @property
     def _picklist_info(self):
         return get_field_picklist(self.field_name, 
-                                  self.entity_picklists._field_info)
+                                  self._field_info)
         
                 
+    @property
+    def _field_info(self):
+        return self.entity_picklists._field_info
+    
+    
     @property
     def is_child(self):
         return is_child_field(self._picklist_info)
@@ -134,11 +177,9 @@ class FieldPicklist(object):
             try:
                 return self._children[label]
             except KeyError:
-                parent_name = get_child_parent_field_name(self._picklist_info)
-                parent = self.entity_picklists[parent_name]
-                self._children[label] = ChildFieldPicklist(parent, 
-                                                            label, 
-                                                            self.field_name) 
+                self._children[label] = ChildFieldPicklist(self.parent, 
+                                                           label, 
+                                                           self.field_name) 
                 return self._children[label]
         else:
             return get_label_value(label, self._picklist)
@@ -154,8 +195,11 @@ class FieldPicklist(object):
 
 
     def as_dict(self):
-        return {self._entity_type:{self._field_name:self._picklist}}
-    
+        if self.is_child:
+            return child_picklist_as_dict(self)
+        else:
+            return picklist_as_dict(self)
+        
         
     def __call__(self, attr):
         return self.__getattr__(attr)
@@ -171,11 +215,11 @@ class FieldPicklist(object):
     
     def __str__(self):
         return os.linesep.join(
-            [ '{}.{}.{} = {}'.format(self._entity_type,
-                                     self._field_name,
-                                     k,
-                                     v)
-            for k,v in iteritems(self._picklist)]
+            [ '{}.{}.{} = {}'.format(self.entity_type,
+                                     self.field_name,
+                                     field.Label,
+                                     field.Value)
+            for field in self._picklist]
                                )
     
         
