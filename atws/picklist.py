@@ -19,18 +19,16 @@ def always_true(*args):
     return True
 
 
-def get_index(index_label, index_name, object_list, condition = None):
-    if condition is None:
-        condition = always_true
+def find(index_label, index_name, object_list, condition = always_true):
     index = next(index for (index, d) in enumerate(object_list) 
                 if d[index_label] == index_name and condition(d))
-    return index
+    return object_list[index]
 
 
 def get_field_picklist(field_name, field_info):
-    field_picklist = field_info.Field[get_index('Name', 
-                                                field_name, 
-                                                field_info.Field)]
+    field_picklist = find('Name', 
+                          field_name, 
+                          field_info.Field)
     return field_picklist
 
 
@@ -45,18 +43,17 @@ def get_child_parent_field_name(field_picklist):
 
 
 def get_label_value(label, picklistvalues):
-    item = picklistvalues[get_index('Label', label, picklistvalues)]
+    item = find('Label', label, picklistvalues)
     return item.Value
 
 
 def get_value_label(value, picklistvalues):
-    item = picklistvalues[get_index('Value', id, picklistvalues)]
+    item = find('Value', id, picklistvalues)
     return item.Label
 
 
 def get_child_label_value(label, picklistvalues, condition):
-    item = picklistvalues[get_index('Label', label, picklistvalues, 
-                                    condition = condition)]
+    item = find('Label', label, picklistvalues, condition = condition)
     return item.Value
 
 
