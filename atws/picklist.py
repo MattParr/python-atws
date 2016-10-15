@@ -3,13 +3,11 @@ Created on 3 Nov 2015
 
 @author: matt
 
-@todo: cache object passing with default cache storage and with ttl
-@todo: monkeypunch lazy picklists into entities by default
+@todo: monkeypunch lazy picklists into entities by default combined with below
 @todo: create a switch to turn on automatic picklist value reversal
-@todo: update create_picklist_module.py to use this
+@todo: update create_picklist_module.py to use this and child naming 
 '''
 from __future__ import absolute_import
-from future.utils import iteritems
 import os
 from cached_property import cached_property
 from .helpers import get_field_info
@@ -48,7 +46,7 @@ def get_label_value(label, picklistvalues):
 
 
 def get_value_label(value, picklistvalues):
-    item = find('Value', id, picklistvalues)
+    item = find('Value', value, picklistvalues)
     return item.Label
 
 
@@ -59,8 +57,9 @@ def get_child_label_value(label, picklistvalues, condition):
 
 def child_picklist_as_dict(child_picklist):
     child_field_dict = {}
+    parent = child_picklist.parent
     for item in child_picklist._picklist:
-        parent_item_label = child_picklist.parent_item_label
+        parent_item_label = parent.reverse_lookup(item.parentValue)
         parent_item_dict = child_field_dict.setdefault(parent_item_label, {})
         parent_item_dict[item.Label] = item.Value
         
@@ -88,7 +87,7 @@ class ChildFieldPicklist(object):
     
     @property
     def parent_item_value(self):
-        return self._parent[self.parent_label]
+        return self._parent[self.parent_item_label]
     
 
     @property
@@ -98,7 +97,7 @@ class ChildFieldPicklist(object):
     
     @property
     def _picklist_info(self):
-        return get_field_picklist(self.child_picklist_name, 
+        return get_field_picklist(self.field_name, 
                                   self._parent.entity_picklists._field_info)
     
         
@@ -106,13 +105,16 @@ class ChildFieldPicklist(object):
         return picklist_value.parentValue == self.parent_item_value
     
     
+    def lookup(self, label):
+        return get_child_label_value(label, self._picklist, self._condition)
+    
+    
     def __getitem__(self, item):
-        return self.__getattr__(item)
+        return self.lookup(item)
     
     
-    def __getattr__(self, attr):
-        return get_child_label_value(attr, self._picklist, self._condition)
-    
+    def __call__(self, label):
+        return self.lookup(label)
     
 
 class FieldPicklist(object):
@@ -188,10 +190,7 @@ class FieldPicklist(object):
     def reverse_lookup(self, value):
         ''' take a field_name_id and return the label '''
         label = get_value_label(value, self._picklist)
-        if self.is_child:
-            self.lookup(label)
-        else:
-            return label 
+        return label 
 
 
     def as_dict(self):
@@ -201,16 +200,12 @@ class FieldPicklist(object):
             return picklist_as_dict(self)
         
         
-    def __call__(self, attr):
-        return self.__getattr__(attr)
+    def __call__(self, label):
+        return self.lookup(label)
         
     
-    def __getattr__(self,attr):
-        return self.lookup(attr)
-    
-    
     def __getitem__(self,item):
-        return self.__getattr__(item)
+        return self.lookup(item)
     
     
     def __str__(self):
@@ -227,7 +222,7 @@ class EntityPicklists(object):
     def __init__(self,at, entity_type):
         self._at = at
         self.entity_type = entity_type
-        self._entity_picklist = {}
+        self._entity_fields = {}
     
     
     @property
@@ -245,16 +240,20 @@ class EntityPicklists(object):
         del self._field_info
         
             
-    def __getattr__(self,attr):
+    def lookup(self,field):
         try:
-            return self._entity_picklist[attr]
+            return self._entity_fields[field]
         except KeyError:
-            self._entity_picklist[attr] = FieldPicklist(self, attr)
-            return self._entity_picklist[attr]
+            self._entity_fields[field] = FieldPicklist(self, field)
+            return self._entity_fields[field]
             
         
     def __getitem__(self, item):
-        return self.__getattr__(item)
+        return self.lookup(item)
+    
+    
+    def __call__(self, field):
+        return self.lookup(field)
         
         
 class Picklists(object):
@@ -267,15 +266,19 @@ class Picklists(object):
         self._entity_picklists[entity_type].refresh()
             
     
-    def __getattr__(self,attr):
+    def lookup(self,entity):
         try:
-            entity_picklists = self._entity_picklists[attr]
+            entity_picklists = self._entity_picklists[entity]
         except KeyError:
-            entity_picklists = EntityPicklists(self._at, attr)
-            self._entity_picklists[attr] = entity_picklists 
+            entity_picklists = EntityPicklists(self._at, entity)
+            self._entity_picklists[entity] = entity_picklists 
         return entity_picklists
             
             
     def __getitem__(self, item):
-        return self.__getattr__(item)
+        return self.lookup(item)
+    
+    
+    def __call__(self, entity):
+        return self.lookup(entity)
         

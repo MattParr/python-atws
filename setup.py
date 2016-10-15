@@ -14,7 +14,8 @@ requirements = [
     'requests',
     'pytz',
     'suds-jurko',
-    'future'
+    'future',
+    'cached_property'
 ]
 
 test_requirements = [

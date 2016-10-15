@@ -3,3 +3,4 @@ requests
 pytz
 suds-jurko>=0.6
 future
+cached_property
