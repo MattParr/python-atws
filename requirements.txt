@@ -2,5 +2,5 @@ click>=6.0
 requests
 pytz
 suds-jurko>=0.6
-future
+future==0.15.2
 cached_property
