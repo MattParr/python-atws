@@ -170,9 +170,12 @@ class Query(object):
     
     def _create_min_id_xml(self):
         minimum_id = self._process_field_value(self.minimum_id)
-        expression = self.AND(self.minimum_id_field, 
-                              self.GreaterThan,
-                              minimum_id)[1]
+        # use _add_field instead of self.AND because we need to keep the
+        # expression
+        expression = self._add_field('AND',
+                                     self.minimum_id_field,
+                                     self.GreaterThan,
+                                     minimum_id)[1]
         self.minimum_id_xml = expression
     
     
