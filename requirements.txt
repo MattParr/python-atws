@@ -1,6 +1,6 @@
 click>=6.0
 requests
-pytz
+pytz==2016.7
 suds-jurko>=0.6
 future
 cached_property
