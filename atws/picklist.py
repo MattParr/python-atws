@@ -13,6 +13,10 @@ from cached_property import cached_property
 from .helpers import get_field_info
 
 
+def is_active(*args):
+    return args[0]['IsActive'] is True
+    
+    
 def always_true(*args):
     return True
 
@@ -44,13 +48,13 @@ def get_child_parent_field_name(field_picklist):
     return parent_field_name
 
 
-def get_label_value(label, picklistvalues):
-    item = find('Label', label, picklistvalues)
+def get_label_value(label, picklistvalues, condition=is_active):
+    item = find('Label', label, picklistvalues, condition=condition)
     return item.Value
 
 
-def get_value_label(value, picklistvalues):
-    item = find('Value', value, picklistvalues)
+def get_value_label(value, picklistvalues, condition=is_active):
+    item = find('Value', value, picklistvalues, condition=condition)
     return item.Label
 
 
@@ -106,7 +110,8 @@ class ChildFieldPicklist(object):
     
         
     def _condition(self, picklist_value):
-        return picklist_value.parentValue == self.parent_item_value
+        return (picklist_value.parentValue == self.parent_item_value 
+                and is_active(picklist_value))
     
     
     def lookup(self, label):
