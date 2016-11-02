@@ -245,7 +245,7 @@ class EntityPicklists(object):
         return result
         
         
-    def refresh(self,picklists):
+    def refresh(self,picklists=None):
         del self._field_info
         
             
