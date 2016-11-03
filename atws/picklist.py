@@ -14,7 +14,7 @@ from .helpers import get_field_info
 
 
 def is_active(*args):
-    return args[0]['IsActive'] is True
+    return args[0]['IsActive']
     
     
 def always_true(*args):
