@@ -1,6 +1,15 @@
 =======
 History
 =======
+0.3.5 (2016-11-04)
+------------------
+
+* at.picklists module added
+* picklists module with child field picklists
+* support files debug feature (saves XML sent and received)
+* query now builds XML closer to the API example documentation
+* query supports special chars like @ in condition values
+
 
 0.3.4 (2016-07-07)
 ------------------
