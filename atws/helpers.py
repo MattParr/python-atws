@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from future.utils import iteritems
 import logging
 import math
-from . import __init__ as atws
+from .query import Query
 from suds import WebFault
 from .constants import (AUTOTASK_API_QUERY_DATEFORMAT,
                        AUTOTASK_API_QUERY_RESULT_LIMIT,
@@ -244,7 +244,7 @@ def process_entity(entity, functions):
 
 
 def get_entities_by_field_equals(wrapper,entity_type,field,value,udf=False):
-    query = atws.Query(entity_type)
+    query = Query(entity_type)
     query.WHERE(field,query.Equals,value,udf)
     return wrapper.query(query)    
 
@@ -259,7 +259,7 @@ def get_entity_by_id(wrapper,entity_type,entity_id):
 
 
 def get_userdefined_field_list_items(wrapper,entity):
-    query = atws.Query('UserDefinedFieldListItem')
+    query = Query('UserDefinedFieldListItem')
     query.WHERE('UdfFieldId', query.Equals, entity.id)
     return wrapper.query(query).fetch_all()
 
