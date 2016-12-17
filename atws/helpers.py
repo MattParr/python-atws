@@ -303,17 +303,25 @@ def get_picklists(get_field_info_response):
 def get_picklist_stream(entity_type,picklists):
     import re
     csnregex = re.compile('^\d+$')
+    failures = []
     for picklist_name,picklist in iteritems(picklists):
         for field_name,field_value in iteritems(picklist):
-            digits = csnregex.findall(field_value)
-            if not digits:
-                field_value = '{}'.format(field_value)
-            yield "{}_{}_{} = {}\n".format(
-                entity_type,
-                picklist_stream_formatter(picklist_name),
-                picklist_stream_formatter(field_name),
-                repr(field_value)
-                )
+            try:
+                digits = csnregex.findall(field_value)
+                if not digits:
+                    field_value = '{}'.format(field_value)
+                yield "{}_{}_{} = {}\n".format(
+                    entity_type,
+                    picklist_stream_formatter(picklist_name),
+                    picklist_stream_formatter(field_name),
+                    repr(field_value)
+                    )
+            except Exception as e:
+                logger.error('failed to add: %s:%s', field_name, field_value)
+                logger.exception('failed processing a field into the picklist')
+                failures.append(e)
+    if failures:
+        raise Exception(failures)
 
 
 def create_atvar_module(at,entities,file_name):
