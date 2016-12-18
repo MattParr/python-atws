@@ -1,6 +1,13 @@
 =======
 History
 =======
+0.4.1 (2016-12-18)
+------------------
+
+* currency symbol picklist on currency entity was causing create_picklist_module
+to fail to complete.  Currency entity is now excluded from default entity set.
+
+
 0.4.0 (2016-11-04)
 ------------------
 

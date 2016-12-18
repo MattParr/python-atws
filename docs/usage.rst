@@ -42,6 +42,10 @@ And then you have a python module::
     print atvar.Ticket_Status_Complete
     5
     
+* note that the Currency entity is currently excluded from the default
+list of entity picklists to add to the module.  It is excluded due to 
+variable naming issues
+    
     
 Querying for entities
 ---------------------
