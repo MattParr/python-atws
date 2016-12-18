@@ -317,7 +317,11 @@ def get_picklist_stream(entity_type,picklists):
                     repr(field_value)
                     )
             except Exception as e:
-                logger.error('failed to add: %s:%s', field_name, field_value)
+                logger.error('failed to add: %s:%s:%s:%s', 
+                             entity_type,
+                             picklist_name,
+                             field_name, 
+                             field_value)
                 logger.exception('failed processing a field into the picklist')
                 failures.append(e)
     if failures:
