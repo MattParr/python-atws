@@ -29,7 +29,7 @@ def main(target_path, username, password, url, entities, log_level):
         logging.basicConfig(level=getattr(logging,log_level))
     at = connect(url=url, username=username, password=password)
     if not entities:
-        entities = get_api_types(at.client, BLACKLISTED_TYPES)
+        entities = get_api_types(at.client, BLACKLISTED_TYPES + ['Currency'])
     
     create_atvar_module(at, entities, target_path)
 
