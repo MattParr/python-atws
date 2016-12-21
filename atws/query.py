@@ -3,9 +3,10 @@ import sys
 from datetime import datetime
 from xml.etree.ElementTree import Element, SubElement, tostring
 from xml.sax.saxutils import escape
-from .helpers import format_datetime_for_api_query
-from .constants import (AUTOTASK_API_QUERY_ID_LIMIT, 
-                       WRAPPER_DEFAULT_GET_ALL_ENTITIES)
+from .helpers import datetime_to_api_timezone
+from .constants import (AUTOTASK_API_QUERY_ID_LIMIT,
+                        AUTOTASK_API_QUERY_DATEFORMAT,
+                        WRAPPER_DEFAULT_GET_ALL_ENTITIES)
 
 PY3 = sys.version_info >= (3, 0)
 QUERY_ENCODING = None
@@ -15,6 +16,30 @@ if PY3:
 
 XML_QUERY_ESCAPE = { '"' : '&quot;',
                      "'" : '&apos;'}
+
+def get_userdefined_field_list_items(wrapper,entity):
+    query = Query('UserDefinedFieldListItem')
+    query.WHERE('UdfFieldId', query.Equals, entity.id)
+    return wrapper.query(query).fetch_all()
+
+
+def get_entity_by_id(wrapper,entity_type,entity_id):
+    result = get_entities_by_field_equals(wrapper,
+                                          entity_type,
+                                          'id',
+                                          entity_id,
+                                          False)
+    return result[0]
+
+
+def get_entities_by_field_equals(wrapper,entity_type,field,value,udf=False):
+    query = Query(entity_type)
+    query.WHERE(field,query.Equals,value,udf)
+    return wrapper.query(query) 
+
+
+def format_datetime_for_api_query(dt):
+    return datetime_to_api_timezone(dt).strftime(AUTOTASK_API_QUERY_DATEFORMAT)
 
 
 def query_escape(value):

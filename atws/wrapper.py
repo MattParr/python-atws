@@ -10,8 +10,21 @@ import os
 import logging
 import re
 import uuid
-from . import constants
-from .helpers import *
+from .constants import (SUPPORT_FILES_ENABLED,
+                        SUPPORT_FILES_LOCATION,
+                        MONKEY_PATCHING_ENABLED,
+                        WRAPPER_DISABLE_CLEAN_ENTITIES,
+                        AUTOTASK_API_ENTITY_SEND_LIMIT)
+from .helpers import (get_result_entities,
+                      datetime_to_api_timezone_entity,
+                      trim_empty_strings_entity,
+                      datetime_to_local_timezone_entity,
+                      get_field_info,
+                      clean_entity,
+                      process_entity,
+                      query_requires_another_call,
+                      get_highest_id,
+                      get_entity_type)
 from . import monkeypatch
 from .monkeypatch import crud
 from .monkeypatch import userdefinedfields
@@ -25,22 +38,22 @@ logger = logging.getLogger(__name__)
 
 
 def connect(**kwargs):
-    if constants.SUPPORT_FILES_ENABLED:
+    if SUPPORT_FILES_ENABLED:
         plugin = SupportFilesPlugin()
         client_options = kwargs.setdefault('client_options', {})
         plugins = client_options.setdefault('plugins', [])
         plugins.append(plugin)
     wrapper = connection.connect(atws_version=Wrapper,**kwargs)
-    if constants.MONKEY_PATCHING_ENABLED:
+    if MONKEY_PATCHING_ENABLED:
         monkeypatch.monkey_patch(wrapper)
 
     return wrapper 
 
 
 def enable_support_files(path = None):
-    constants.SUPPORT_FILES_ENABLED = True
+    SUPPORT_FILES_ENABLED = True
     if path:
-        constants.SUPPORT_FILES_LOCATION = path
+        SUPPORT_FILES_LOCATION = path
     
 
 class SupportFilesPlugin(MessagePlugin):
@@ -69,7 +82,7 @@ class SupportFilesPlugin(MessagePlugin):
     
     @property
     def file_name(self):
-        return os.path.join(constants.SUPPORT_FILES_LOCATION, 
+        return os.path.join(SUPPORT_FILES_LOCATION, 
                             str(uuid.uuid4()) + '.xml')
 
 
@@ -318,7 +331,7 @@ class Wrapper(connection.Connection):
         
 
     def _process_outbound_entity(self,entity):
-        if not constants.WRAPPER_DISABLE_CLEAN_ENTITIES:
+        if not WRAPPER_DISABLE_CLEAN_ENTITIES:
             clean_entity(entity)
         process_entity(entity, self.outbound_entity_functions)
 
@@ -367,7 +380,7 @@ class Wrapper(connection.Connection):
             return 1
         else:
             return kwargs.get('packet_limit',
-                              constants.AUTOTASK_API_ENTITY_SEND_LIMIT)
+                              AUTOTASK_API_ENTITY_SEND_LIMIT)
         
     
     def _get_entity_packet(self,entities):

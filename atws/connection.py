@@ -8,7 +8,13 @@ from builtins import range
 import logging
 import suds.client
 import suds.transport as transport
-from .constants import *
+from .constants import (REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES,
+                        REQUEST_TRANSPORT_TIMEOUT_CONNECT_WAIT,
+                        REQUEST_TRANSPORT_TIMEOUT_RESPONSE_WAIT,
+                        AUTOTASK_API_BASE_URL,
+                        DISABLE_SSL_WARNINGS,
+                        USE_REQUEST_TRANSPORT_TYPE)
+                        
 from _ssl import SSLError
 from requests.exceptions import ConnectTimeout, Timeout, ReadTimeout
 

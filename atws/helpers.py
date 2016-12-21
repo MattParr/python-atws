@@ -7,12 +7,10 @@ from __future__ import absolute_import
 from future.utils import iteritems
 import logging
 import math
-from . import __init__ as atws
 from suds import WebFault
-from .constants import (AUTOTASK_API_QUERY_DATEFORMAT,
-                       AUTOTASK_API_QUERY_RESULT_LIMIT,
-                       AUTOTASK_API_TIMEZONE,
-                       LOCAL_TIMEZONE)
+from .constants import (AUTOTASK_API_QUERY_RESULT_LIMIT,
+                        AUTOTASK_API_TIMEZONE,
+                        LOCAL_TIMEZONE)
 
 logger = logging.getLogger(__name__)
 
@@ -151,10 +149,6 @@ def query_result_count(result):
     return len(get_result_entities(result))
 
 
-def format_datetime_for_api_query(dt):
-    return datetime_to_api_timezone(dt).strftime(AUTOTASK_API_QUERY_DATEFORMAT)
-
-
 def datetime_to_api_timezone(dt):
     if dt.tzinfo is None:
         api_dt = LOCAL_TIMEZONE.localize(dt).astimezone(AUTOTASK_API_TIMEZONE).replace(tzinfo=None)
@@ -241,27 +235,6 @@ def process_udfs(entity,functions):
 def process_entity(entity, functions):
     process_fields(entity, functions)
     process_udfs(entity, functions)
-
-
-def get_entities_by_field_equals(wrapper,entity_type,field,value,udf=False):
-    query = atws.Query(entity_type)
-    query.WHERE(field,query.Equals,value,udf)
-    return wrapper.query(query)    
-
-
-def get_entity_by_id(wrapper,entity_type,entity_id):
-    result = get_entities_by_field_equals(wrapper,
-                                          entity_type,
-                                          'id',
-                                          entity_id,
-                                          False)
-    return result[0]
-
-
-def get_userdefined_field_list_items(wrapper,entity):
-    query = atws.Query('UserDefinedFieldListItem')
-    query.WHERE('UdfFieldId', query.Equals, entity.id)
-    return wrapper.query(query).fetch_all()
 
 
 def create_userdefined_field_list_items(wrapper,entity,items):
