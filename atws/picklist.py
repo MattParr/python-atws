@@ -67,7 +67,8 @@ def child_picklist_as_dict(child_picklist):
     child_field_dict = {}
     parent = child_picklist.parent
     for item in child_picklist._picklist:
-        parent_item_label = parent.reverse_lookup(item.parentValue)
+        parent_item_label = parent.reverse_lookup(item.parentValue,
+                                                  condition=always_true)
         parent_item_dict = child_field_dict.setdefault(parent_item_label, {})
         parent_item_dict[item.Label] = item.Value
         
@@ -196,9 +197,9 @@ class FieldPicklist(object):
             return get_label_value(label, self._picklist)
 
     
-    def reverse_lookup(self, value):
+    def reverse_lookup(self, value, condition=is_active):
         ''' take a field_name_id and return the label '''
-        label = get_value_label(value, self._picklist)
+        label = get_value_label(value, self._picklist, condition=condition)
         return label 
 
 
