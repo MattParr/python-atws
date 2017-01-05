@@ -24,7 +24,7 @@ test_requirements = [
 
 setup(
     name='atws',
-    version='0.4.2',
+    version='0.4.5',
     description="python-atws is a wrapper for the AutoTask SOAP webservices API",
     long_description=readme + '\n\n' + history,
     author="Matt Parr",
@@ -47,7 +47,7 @@ setup(
     zip_safe=False,
     keywords='atws Autotask API SOAP',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
