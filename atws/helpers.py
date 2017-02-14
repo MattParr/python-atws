@@ -359,3 +359,18 @@ def trim_empty_strings_entity(**kwargs):
         pass
     
     
+def trim_single_space_strings_entity(**kwargs):
+    try:
+        if kwargs['udf'].Value.isspace():
+            kwargs['udf'].Value = ''
+    except (AttributeError,KeyError,TypeError):
+        pass
+    else:
+        return
+    try:
+        if getattr(kwargs['entity'], kwargs['name']).isspace():
+            setattr(kwargs['entity'],
+                    kwargs['name'],
+                    '')
+    except (AttributeError,KeyError,TypeError):
+        pass

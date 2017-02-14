@@ -24,7 +24,8 @@ from .helpers import (get_result_entities,
                       process_entity,
                       query_requires_another_call,
                       get_highest_id,
-                      get_entity_type)
+                      get_entity_type,
+                      trim_single_space_strings_entity)
 from . import monkeypatch
 from .monkeypatch import crud
 from .monkeypatch import userdefinedfields
@@ -247,7 +248,8 @@ class ActionCursor(QueryCursor):
 class Wrapper(connection.Connection):
     outbound_entity_functions = [datetime_to_api_timezone_entity, 
                                  trim_empty_strings_entity]
-    inbound_entity_functions = [datetime_to_local_timezone_entity]
+    inbound_entity_functions = [datetime_to_local_timezone_entity,
+                                trim_single_space_strings_entity]
     
     
     @property

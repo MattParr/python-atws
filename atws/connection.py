@@ -15,8 +15,7 @@ from .constants import (REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES,
                         DISABLE_SSL_WARNINGS,
                         USE_REQUEST_TRANSPORT_TYPE)
                         
-from _ssl import SSLError
-from requests.exceptions import ConnectTimeout, Timeout, ReadTimeout
+from requests.exceptions import ConnectTimeout, Timeout, ReadTimeout, SSLError
 
 logger = logging.getLogger(__name__)
 suds_version = float(suds.__version__[:3])
