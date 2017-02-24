@@ -226,6 +226,10 @@ class FieldPicklist(object):
                                      field.Value)
             for field in self._picklist]
                                )
+        
+    
+    def __iter__(self):
+        return iter([field for field in self._picklist])
     
         
 class EntityPicklists(object):
@@ -246,6 +250,17 @@ class EntityPicklists(object):
         return result
         
         
+    @cached_property
+    def fields(self):
+        return [field for field in self._field_info.Field]
+            
+    
+    @cached_property            
+    def picklist_fields(self):
+        return [field for field in self.fields if 
+                field.IsPickList]
+        
+        
     def refresh(self,picklists=None):
         del self._field_info
         
@@ -264,6 +279,10 @@ class EntityPicklists(object):
     
     def __call__(self, field):
         return self.lookup(field)
+    
+    
+    def __iter__(self):
+        return iter([self.lookup(field.Name) for field in self.picklist_fields])
         
         
 class Picklists(object):
@@ -291,4 +310,9 @@ class Picklists(object):
     
     def __call__(self, entity):
         return self.lookup(entity)
+    
+    
+    def __iter__(self):
+        return iter(self._entity_picklists)
+        
         
