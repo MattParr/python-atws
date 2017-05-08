@@ -39,7 +39,8 @@ except ImportError:
 MAX_RETRIES = REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES
 
 def get_zone_info(username):
-    client = suds.client.Client(url=AUTOTASK_API_BASE_URL)
+    client = suds.client.Client(url=AUTOTASK_API_BASE_URL,
+                                transport = get_requests_transport())
     return client.service.getZoneInfo(username)
 
 
@@ -75,22 +76,27 @@ def get_connection_url(**kwargs):
 def disable_warnings():
     import requests.packages
     requests.packages.urllib3.disable_warnings()
-    
+
+
+def get_requests_transport(username=None, password=None):
+    session = requests.Session()
+    if username and password:
+        session.auth = (username, password)
+    session.mount("http://", 
+                  requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
+    session.mount("https://", 
+                  requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))        
+    return RequestsTransport(session)
+
     
 def connect(**kwargs):
     client_options = kwargs.setdefault('client_options',{})
     if DISABLE_SSL_WARNINGS:
         disable_warnings()
-    if USE_REQUEST_TRANSPORT_TYPE:
-        session = requests.Session()
-        session.auth = (kwargs['username'],kwargs['password'])
-        session.mount("http://", 
-                      requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
-        session.mount("https://", 
-                      requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
-        transport = client_options.setdefault('transport',
-                                              RequestsTransport(session))
-    
+    if USE_REQUEST_TRANSPORT_TYPE and 'transport' not in client_options:
+        client_options['transport'] = get_requests_transport(
+            kwargs['username'],
+            kwargs['password'])
     url = get_connection_url(**kwargs)
     client_options['url'] = url
     obj = kwargs.get('atws_version',Connection)

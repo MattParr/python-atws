@@ -1,6 +1,12 @@
 =======
 History
 =======
+0.4.9 (2017-05-08)
+------------------
+
+* url lookup using get_zone_info is now completed using the requests transport
+
+
 0.4.1 (2016-12-18)
 ------------------
 
