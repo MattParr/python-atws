@@ -11,6 +11,7 @@ import suds.transport as transport
 from .constants import (REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES,
                         REQUEST_TRANSPORT_TIMEOUT_CONNECT_WAIT,
                         REQUEST_TRANSPORT_TIMEOUT_RESPONSE_WAIT,
+                        REQUEST_TRANSPORT_TIMEOUT_SEND_WAIT,
                         AUTOTASK_API_BASE_URL,
                         DISABLE_SSL_WARNINGS,
                         USE_REQUEST_TRANSPORT_TYPE)
@@ -142,6 +143,9 @@ class RequestsTransport(transport.Transport):
             except (SSLError, ConnectTimeout, Timeout, ReadTimeout):
                 if attempt == REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES:
                     raise
+                logger.exception('Transient error.  Retrying...%s/%s',
+                                 attempt,
+                                 REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES)
                 continue
         return StringIO(resp.content)
     
@@ -151,14 +155,18 @@ class RequestsTransport(transport.Transport):
         for attempt in range(1,REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES + 1):
             try:
                 resp = self._session.post(
-                                          request.url,
-                                          data=request.message,
-                                          headers=request.headers,
+                      request.url,
+                      data=request.message,
+                      headers=request.headers,
+                      timeout=REQUEST_TRANSPORT_TIMEOUT_SEND_WAIT
                                           )
                 break
             except (SSLError, Timeout):
                 if attempt == REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES:
                     raise
+                logger.exception('Transient error.  Retrying... %s/%s',
+                                 attempt,
+                                 REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES)
                 continue
         return transport.Reply(
             resp.status_code,
