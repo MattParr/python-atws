@@ -24,13 +24,10 @@ def always_true(*args):
 
 def find(index_label, index_name, object_list, condition = always_true):
     try:
-        index = next(index for (index, d) in enumerate(object_list) 
-                    if d[index_label] == index_name and condition(d))   
+        return next(obj for obj in object_list 
+                    if obj[index_label] == index_name and condition(obj))   
     except StopIteration:
         raise KeyError('label not found in index', index_label, index_name)
-
-    else:
-        return object_list[index]
     
 
 def get_field_picklist(field_name, field_info):
