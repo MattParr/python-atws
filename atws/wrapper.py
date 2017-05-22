@@ -9,10 +9,8 @@ from future.utils import iteritems
 import os
 import logging
 import re
-import uuid
-from .constants import (SUPPORT_FILES_ENABLED,
-                        SUPPORT_FILES_LOCATION,
-                        MONKEY_PATCHING_ENABLED,
+from uuid import uuid4
+from .constants import (MONKEY_PATCHING_ENABLED,
                         WRAPPER_DISABLE_CLEAN_ENTITIES,
                         AUTOTASK_API_ENTITY_SEND_LIMIT)
 from .helpers import (get_result_entities,
@@ -39,8 +37,8 @@ logger = logging.getLogger(__name__)
 
 
 def connect(**kwargs):
-    if SUPPORT_FILES_ENABLED:
-        plugin = SupportFilesPlugin()
+    if 'support_files_path' in kwargs:
+        plugin = SupportFilesPlugin(kwargs['support_files_path'])
         client_options = kwargs.setdefault('client_options', {})
         plugins = client_options.setdefault('plugins', [])
         plugins.append(plugin)
@@ -52,9 +50,8 @@ def connect(**kwargs):
 
 
 def enable_support_files(path = None):
-    SUPPORT_FILES_ENABLED = True
-    if path:
-        SUPPORT_FILES_LOCATION = path
+    raise DeprecationWarning('This is no longer used. use...:'
+                             '''connect(support_files_path=<path to dir>)''')
     
 
 class SupportFilesPlugin(MessagePlugin):
@@ -64,27 +61,38 @@ class SupportFilesPlugin(MessagePlugin):
     constants.SUPPORT_FILES_ENABLED = True
     constants.SUPPORT_FILES_LOCATION = 'path to save files'
     '''
+    def __init__(self, support_files_path):
+        self.support_files_path = support_files_path
+        
+        
     def sending(self, context):
-        self.write_file(context.envelope, 'sent')
+        self.write_file(context.envelope, 'sent', self._get_uuid(context))
 
             
     def received(self, context):
-        self.write_file(context.reply, 'received')
+        self.write_file(context.reply, 'received', self._get_uuid(context))
     
     
-    def write_file(self, output, direction):
-        file_name = self.file_name
-        with open(file_name,"w") as f:
-            logger.info('writing %s xml to %s.xml', 
-                        direction,
-                        file_name)
+    def write_file(self, output, direction, uuid):
+        file_name = self._get_file_name(direction, uuid)
+        with open(file_name, "w") as f:
+            logger.info('writing %s xml to %s.xml', direction, file_name)
             f.write(str(output))
             
     
-    @property
-    def file_name(self):
-        return os.path.join(SUPPORT_FILES_LOCATION, 
-                            str(uuid.uuid4()) + '.xml')
+    def _get_file_name(self, direction, uuid):
+        file_name = '{}-{}.xml'.format(uuid, direction)
+        return os.path.join(self.support_files_path, 
+                            file_name)
+        
+    
+    def _get_uuid(self, context):
+        try:
+            return context.__atws_support_file
+        except AttributeError:
+            uuid = uuid4().hex
+            context.__atws_support_file = uuid
+            return uuid
 
 
 class AutotaskAPIException(Exception):
