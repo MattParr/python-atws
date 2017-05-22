@@ -9,6 +9,8 @@ from future.utils import iteritems
 import os
 import logging
 import re
+import time
+from datetime import datetime
 from uuid import uuid4
 from .constants import (MONKEY_PATCHING_ENABLED,
                         WRAPPER_DISABLE_CLEAN_ENTITIES,
@@ -66,33 +68,26 @@ class SupportFilesPlugin(MessagePlugin):
         
         
     def sending(self, context):
-        self.write_file(context.envelope, 'sent', self._get_uuid(context))
+        self.write_file(context.envelope, 'sent')
 
             
     def received(self, context):
-        self.write_file(context.reply, 'received', self._get_uuid(context))
+        self.write_file(context.reply, 'received')
     
     
-    def write_file(self, output, direction, uuid):
-        file_name = self._get_file_name(direction, uuid)
+    def write_file(self, output, direction):
+        file_name = self._get_file_name(direction)
         with open(file_name, "w") as f:
             logger.info('writing %s xml to %s.xml', direction, file_name)
             f.write(str(output))
             
     
-    def _get_file_name(self, direction, uuid):
-        file_name = '{}-{}.xml'.format(uuid, direction)
+    def _get_file_name(self, direction):
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')
+        uuid = uuid4().hex
+        file_name = '{}-{}-{}.xml'.format(timestamp, uuid, direction)
         return os.path.join(self.support_files_path, 
                             file_name)
-        
-    
-    def _get_uuid(self, context):
-        try:
-            return context.__atws_support_file
-        except AttributeError:
-            uuid = uuid4().hex
-            context.__atws_support_file = uuid
-            return uuid
 
 
 class AutotaskAPIException(Exception):
