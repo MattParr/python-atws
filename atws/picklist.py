@@ -11,7 +11,8 @@ from __future__ import absolute_import
 import os
 from cached_property import cached_property
 from .helpers import get_field_info
-
+import logging
+logger = logging.getLogger(__name__)
 
 def is_active(*args):
     return args[0]['IsActive']
@@ -24,9 +25,10 @@ def always_true(*args):
 def find(index_label, index_name, object_list, condition = always_true):
     try:
         index = next(index for (index, d) in enumerate(object_list) 
-                    if str(d[index_label]) == str(index_name) and condition(d))
+                    if d[index_label] == index_name and condition(d))   
     except StopIteration:
         raise KeyError('label not found in index', index_label, index_name)
+
     else:
         return object_list[index]
     
