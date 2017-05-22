@@ -7,4 +7,4 @@
         - eg create(400 entities using 1 entity per call might run over 40 times over 10 threads)
         - the results processed by the response object
         - simple switch in the connect module to turn it on or off. (threaded wrapper object?)
-- [] a lazy loading picklist attribute for the wrapper
+- [x] a lazy loading picklist attribute for the wrapper

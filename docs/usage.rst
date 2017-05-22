@@ -24,6 +24,20 @@ be discovered by performing an API lookup.::
     at = atws.connect(username='user@usernamespace.com',password='userpassword')
     
 
+Support Files
+-------------
+
+Often, Autotask support will ask for the XML that is being sent/received
+in order to support a problem.  Sometimes you might like to see this raw
+output yourself to check date conversions or entity SAX failures.
+There is a support file message plugin to copy XML files to a path you specify
+when connecting to the API.::
+
+    at = atws.connect(username='user@usernamespace.com',
+                      password='userpassword',
+                      support_file_path='/tmp')
+
+
 Picklist module
 ---------------
 
@@ -131,7 +145,28 @@ processed.::
     
     # if you don't need to see the results, you can just:
     at.update(tickets_to_update).execute()
+
+
+Picklists
+---------
+
+Many entities have picklists to describe possible id values for attributes.
+Some common ticket entity picklist values are: Status, Priority, QueueID
+Looking up the picklists for an entity is an API call.
+There is a caching attribute on the wrapper object for accessing picklists.::
+
+    assert at.picklist['Ticket']['Status']['Complete'] == 5
+    assert at.picklist['Ticket']['Status'].reverse_lookup(5) == 'Complete'
+         
+Some picklists are children of parent picklists.  
+In a ticket, Subissue type is a child of 
+Issue type.  These are handled differently due to possible naming conflicts.::
+
+    at.picklist['Ticket']['SubIssueType']['Hardware Failure']['Mouse']
     
+In the example above, 'Hardware Failure' is an Issue Type, and 'Mouse' is a 
+Subissue Type.
+
 
 Creating entities
 -----------------
@@ -139,15 +174,13 @@ Creating entities
 To create an entity, you must first create the object, and then submit it to 
 be processed.  Note that many entities have required fields.::
 
-    picklists = Picklists(at)
-
     ticket = at.new('Ticket')
     ticket.Title = 'test ticket'
     ticket.AccountID = 0
     ticket.DueDateTime = datetime.now()
-    ticket.Priority = picklists['Ticket']['Priority']['Standard']
-    ticket.Status = picklists['Ticket']['Status']['New']
-    ticket.QueueID = picklists['Ticket']['QueueID']['Your Queue Name Here']
+    ticket.Priority = at.picklist['Ticket']['Priority']['Standard']
+    ticket.Status = at.picklist['Ticket']['Status']['New']
+    ticket.QueueID = at.picklist['Ticket']['QueueID']['Your Queue Name Here']
     #if you are just submitting one ticket:
     ticket.create() # updates the ticket object inline using CRUD patch
     # or:
