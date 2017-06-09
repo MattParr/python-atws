@@ -14,6 +14,10 @@ from .helpers import get_field_info
 import logging
 logger = logging.getLogger(__name__)
 
+def is_inactive(*args):
+    return is_active(*args) != True
+
+
 def is_active(*args):
     return args[0]['IsActive']
     
@@ -65,11 +69,24 @@ def get_child_label_value(label, picklistvalues, condition):
 def child_picklist_as_dict(child_picklist):
     child_field_dict = {}
     parent = child_picklist.parent
+    if child_picklist.is_active == True:
+        condition = is_active
+    elif child_picklist.is_active == False:
+        condition = is_inactive
+    else:
+        condition = always_true
+        
     for item in child_picklist._picklist:
-        parent_item_label = parent.reverse_lookup(item.parentValue,
-                                                  condition=always_true)
-        parent_item_dict = child_field_dict.setdefault(parent_item_label, {})
-        parent_item_dict[item.Label] = item.Value
+        try:
+            parent_item_label = parent.reverse_lookup(item.parentValue,
+                                                  condition=condition)
+        except KeyError:
+            logger.debug('inactive parent item: %s',
+                         item.parentValue)
+        else:
+            parent_item_dict = child_field_dict.setdefault(parent_item_label, 
+                                                           dict())
+            parent_item_dict[item.Label] = item.Value
         
     return {child_picklist.entity_type:
             {child_picklist.field_name:child_field_dict}}
