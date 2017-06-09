@@ -130,6 +130,7 @@ class FieldPicklist(object):
     def __init__(self, entity_picklists, field_name):
         self.field_name = field_name
         self.entity_picklists = entity_picklists
+        self.is_active = None
         if self.is_child:
             self._children = {}
         
@@ -163,7 +164,12 @@ class FieldPicklist(object):
         
     @property
     def _picklist(self):
-        return self._picklist_info.PicklistValues.PickListValue
+        picklist_values = self._picklist_info.PicklistValues.PickListValue
+        if self.is_active != None:
+            return [picklist_value for picklist_value in picklist_values 
+                    if picklist_value.IsActive == self.is_active]
+        else:
+            return self._picklist_info.PicklistValues.PickListValue
     
     
     @property
