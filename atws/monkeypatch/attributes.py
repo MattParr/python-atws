@@ -10,7 +10,7 @@ import json
 
 
 ATTRIBUTE_UDF_NAME = 'AutomatedSystemTags'
-
+DEFAULT = object() 
 
 def encode(d):
     return json.dumps(d)
@@ -27,12 +27,12 @@ def del_attribute(wrapper,entity,name):
     set_attributes(wrapper, entity, attributes)
     
 
-def get_attribute(wrapper,entity,name,default=[]):
+def get_attribute(wrapper,entity,name,default=DEFAULT):
     attributes = get_attributes(wrapper,entity)
     try:
         result = attributes[name]
     except KeyError:
-        if default == []:
+        if default == DEFAULT:
             raise
         result = set_attribute(wrapper,entity,name,default)
     return result
@@ -73,7 +73,7 @@ def mp_set_attributes(entity,attributes):
     return set_attributes(entity._wrapper, entity, attributes)
 
 
-def mp_get_attribute(entity,name,default=[]):
+def mp_get_attribute(entity,name,default=DEFAULT):
     return get_attribute(entity._wrapper, entity, name, default)
 
 
