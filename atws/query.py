@@ -29,8 +29,12 @@ def get_entity_by_id(wrapper,entity_type,entity_id):
                                           'id',
                                           entity_id,
                                           False)
-    return result[0]
-
+    for i, e in enumerate(result):
+        first_entity = e
+        if i == 1:
+            raise ValueError('too many results')
+    return first_entity
+        
 
 def get_entities_by_field_equals(wrapper,entity_type,field,value,udf=False):
     query = Query(entity_type)
