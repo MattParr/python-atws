@@ -8,12 +8,14 @@ from suds.sudsobject import Object as sudsobject
 from . import monkey_patch
 from .. import helpers
 
+DEFAULT = object()
+
 def mp_set_udf(entity, name, value):
     helpers.set_udf(entity._wrapper, entity, name, value)
     
 
-def mp_get_udf_value(entity,name):
-    return helpers.get_udf_value(entity._wrapper, entity, name)
+def mp_get_udf_value(entity, name, default=DEFAULT):
+    return helpers.get_udf_value(entity._wrapper, entity, name, default)
 
 
 def mp_del_udf(entity,name):
