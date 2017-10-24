@@ -10,7 +10,6 @@ deploy:
   provider: pypi
   user: mattparr
 env:
-- TOXENV=py36
 - TOXENV=py35
 - TOXENV=py34
 - TOXENV=py27
