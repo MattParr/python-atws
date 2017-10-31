@@ -7,14 +7,15 @@ from __future__ import absolute_import
 from suds.sudsobject import Object as sudsobject
 from . import monkey_patch
 from .. import helpers
+from ..constants import DEFAULT_OPTION_NOT_USED
 
-DEFAULT = object()
+
 
 def mp_set_udf(entity, name, value):
     helpers.set_udf(entity._wrapper, entity, name, value)
     
 
-def mp_get_udf_value(entity, name, default=DEFAULT):
+def mp_get_udf_value(entity, name, default=DEFAULT_OPTION_NOT_USED):
     return helpers.get_udf_value(entity._wrapper, entity, name, default)
 
 

@@ -10,10 +10,11 @@ import math
 from suds import WebFault
 from .constants import (AUTOTASK_API_QUERY_RESULT_LIMIT,
                         AUTOTASK_API_TIMEZONE,
-                        LOCAL_TIMEZONE)
+                        LOCAL_TIMEZONE,
+                        DEFAULT_OPTION_NOT_USED)
 
 logger = logging.getLogger(__name__)
-DEFAULT = object()
+
 
 def copy_attributes(from_entity,to_entity):
     attributes = [field[0] for field in from_entity]
@@ -37,12 +38,12 @@ def get_entity_type(entity):
     return entity.__class__.__name__
 
 
-def get_udf_value(wrapper,entity,name,default=DEFAULT):
+def get_udf_value(wrapper,entity,name,default=DEFAULT_OPTION_NOT_USED):
     udf = get_udf(wrapper,entity,name,default)
     try:
         return udf.Value
     except AttributeError:
-        if default == DEFAULT:
+        if default == DEFAULT_OPTION_NOT_USED:
             raise
         udf.Value = default
     return udf.Value
@@ -66,12 +67,12 @@ def get_api_usage(wrapper):
     return math.ceil( ( float(requests)/float(threshold) )*100 )
 
 
-def get_udf(wrapper,entity,name,default=DEFAULT):
+def get_udf(wrapper,entity,name,default=DEFAULT_OPTION_NOT_USED):
     if has_udfs(entity):
         for udf in get_udfs(entity):
             if name == udf.Name:
                 return udf
-    if default == DEFAULT:
+    if default == DEFAULT_OPTION_NOT_USED:
         raise AttributeError('no udf named {}'.format(name))
     udf = wrapper.new('UserDefinedField')
     udf.Name = name
