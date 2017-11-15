@@ -69,6 +69,8 @@ def get_connection_url(**kwargs):
     try:
         url = kwargs['url']
     except (KeyError):
+        url = None
+    if not url:
         url = get_zone_wsdl(kwargs['username'])
     return url
 
