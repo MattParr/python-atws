@@ -349,6 +349,8 @@ def datetime_to_local_timezone_entity(**kwargs):
 def trim_empty_strings_entity(**kwargs):
     try:
         kwargs['udf'].Value = kwargs['udf'].Value.trim()
+        if kwargs['udf'].Value == "":
+            delattr(kwargs['udf'], 'Value')
     except (AttributeError,KeyError,TypeError):
         pass
     else:
