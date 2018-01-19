@@ -31,7 +31,7 @@ def has_udfs(entity):
 
 def del_udf(wrapper,entity,name):
     udf = get_udf(wrapper, entity, name)
-    entity.UserDefinedFields.UserDefinedField.remove(udf)
+    udf.Value = ''
     
 
 def get_entity_type(entity):
