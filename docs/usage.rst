@@ -36,29 +36,6 @@ when connecting to the API.::
     at = atws.connect(username='user@usernamespace.com',
                       password='userpassword',
                       support_file_path='/tmp')
-
-
-Picklist module
----------------
-
-There is a shell script installed that will create a python module that 
-contains variables with picklist names, and assignments to those variables 
-with the picklist ID value.
-Usage: create_picklist_module [OPTIONS] TARGET_PATH::
-
-    $ create_picklist_module --username 'user@usernamespace.com' \
-    --password 'userpassword' atvar.py
-    
-    
-And then you have a python module::
-
-    import atvar.py
-    print atvar.Ticket_Status_Complete
-    5
-    
-* note that the Currency entity is currently excluded from the default
-list of entity picklists to add to the module.  It is excluded due to 
-variable naming issues
     
     
 Querying for entities
@@ -79,8 +56,9 @@ The Query object::
     query = atws.Query('Ticket')
     query.WHERE('id',query.GreaterThan,5667)
     query.Bracket('AND')
-    query.OR('Status',query.Equals,atvar.Ticket_Status_Complete)
-    query.OR('IssueType',query.Equals,atvar.Ticket_IssueType_NonWorkIssues)
+    query.OR('Status',query.Equals,at.picklist['Ticket']['Status']['Complete'])
+    query.OR('IssueType',query.Equals,
+             at.picklist['Ticket']['IssueType']['Non Work Issues'])
     query.CloseBracket()
     # in ATWS XML, it would look like this
     print query.pretty_print()
@@ -119,7 +97,7 @@ processed.::
     
     def close_tickets(tickets):
         for ticket in tickets:
-            ticket.Status = atvar.TicketStatusComplete
+            ticket.Status = at.picklist['Ticket']['Status']['Complete']
             yield ticket
             
     
@@ -228,7 +206,7 @@ wrapped to provide a better interface to handle them.::
     my_udf_value = ticket['My Udf Name']
     # and likewise for assignment.  if the attribute to be assigned isn't in the 
     SOAP specification, then a UDF will be assumed.
-    ticket['Status'] = atvar.TicketStatusComplete
+    ticket['Status'] = at.picklist['Ticket']['Status']['Complete']
     ticket['My New Userdefined Field'] = my_udf_value
     ticket.update()
     
