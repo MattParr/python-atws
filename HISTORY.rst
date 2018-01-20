@@ -1,6 +1,11 @@
 =======
 History
 =======
+0.5.2 
+------------------
+
+* removed picklist module and documentation references updated to us picklists 
+
 0.5.0 (2017-10-24)
 ------------------
 
