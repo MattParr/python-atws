@@ -10,7 +10,6 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'click>=6.0',
     'requests',
     'pytz',
     'suds-jurko',
@@ -36,11 +35,6 @@ setup(
     ],
     package_dir={'atws':
                  'atws'},
-    entry_points={
-        'console_scripts': [
-            'create_picklist_module=atws.create_picklist_module:main'
-        ]
-    },
     include_package_data=True,
     install_requires=requirements,
     license="MIT license",
