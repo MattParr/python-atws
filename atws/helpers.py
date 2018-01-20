@@ -273,47 +273,6 @@ def get_picklists(get_field_info_response):
     return {field.Name:get_field_picklist(field.PicklistValues.PickListValue) 
      for field in get_field_info_response.Field 
      if has_picklist_values(field)}
-    
-
-def get_picklist_stream(entity_type,picklists):
-    import re
-    csnregex = re.compile('^\d+$')
-    failures = []
-    for picklist_name,picklist in iteritems(picklists):
-        for field_name,field_value in iteritems(picklist):
-            try:
-                digits = csnregex.findall(field_value)
-                if not digits:
-                    field_value = '{}'.format(field_value)
-                yield "{}_{}_{} = {}\n".format(
-                    entity_type,
-                    picklist_stream_formatter(picklist_name),
-                    picklist_stream_formatter(field_name),
-                    repr(field_value)
-                    )
-            except Exception as e:
-                logger.error('failed to add: %s:%s:%s:%s', 
-                             entity_type,
-                             picklist_name,
-                             field_name, 
-                             field_value)
-                logger.exception('failed processing a field into the picklist')
-                failures.append(e)
-    if failures:
-        raise Exception(failures)
-
-
-def create_atvar_module(at,entities,file_name):
-    with open(file_name,"w") as a: 
-        for entity_type in entities:
-            try:
-                field_info_response = get_field_info(at,entity_type)
-            except WebFault:
-                pass
-            else:
-                picklists = get_picklists(field_info_response)
-                for line in get_picklist_stream(entity_type,picklists):
-                    a.write( line ) 
                     
 
 def datetime_to_api_timezone_entity(**kwargs):
