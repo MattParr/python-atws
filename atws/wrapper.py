@@ -92,7 +92,7 @@ class SupportFilesPlugin(MessagePlugin):
 
 class AutotaskAPIException(Exception):
     message = """Autotask API has returned an error.
-    Please process the response attribute in this exception to detirmine 
+    Please process the response attribute in this exception to determine
     the extent of this failure.
     """ 
     
@@ -410,4 +410,3 @@ class Wrapper(connection.Connection):
             logger.debug('yielding packet response')
             return response.add_result(result, packet)
 
-    
