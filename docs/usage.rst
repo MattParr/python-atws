@@ -55,11 +55,11 @@ The Query object::
     '''
     query = atws.Query('Ticket')
     query.WHERE('id',query.GreaterThan,5667)
-    query.Bracket('AND')
+    query.open_bracket('AND')
     query.OR('Status',query.Equals,at.picklist['Ticket']['Status']['Complete'])
     query.OR('IssueType',query.Equals,
              at.picklist['Ticket']['IssueType']['Non Work Issues'])
-    query.CloseBracket()
+    query.close_bracket()
     # in ATWS XML, it would look like this
     print query.pretty_print()
 
