@@ -11,7 +11,8 @@ from . import monkey_patch
 
 def mp_update(entity):
     result = entity._wrapper.update(entity).fetch_one()
-    copy_attributes(result,entity)
+    if result:
+        copy_attributes(result,entity)
     return True
 
 
@@ -24,13 +25,15 @@ def mp_reload(entity):
     query = query.Query(get_entity_type(entity))
     query.WHERE('id',query.Equals,entity.id)
     result = entity._wrapper.query(query).fetch_one()
-    copy_attributes(result,entity)
+    if result:
+        copy_attributes(result,entity)
     return True
     
 
 def mp_create(entity):
     result = entity._wrapper.create(entity).fetch_one()
-    copy_attributes(result,entity)
+    if result:
+        copy_attributes(result,entity)
     return True
     
 generic_patches = {
