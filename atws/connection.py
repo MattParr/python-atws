@@ -8,6 +8,9 @@ from builtins import range
 import logging
 import suds.client
 import suds.transport as transport
+from suds.sax.element import Element
+from suds.sax.attribute import Attribute
+
 from .constants import (REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES,
                         REQUEST_TRANSPORT_TIMEOUT_CONNECT_WAIT,
                         REQUEST_TRANSPORT_TIMEOUT_RESPONSE_WAIT,
@@ -189,7 +192,13 @@ class Connection(object):
             self.client = kwargs['client']
         except KeyError:
             options = kwargs.get('client_options',{})
-            self.client = suds.client.Client(**options)
+            self.client = suds.client.Client(**options)            
+
+            if 'integrationcode' in kwargs:
+                integrationCode = Element("AutotaskIntegrations") \
+                    .append(Attribute('xmlns', 'http://autotask.net/ATWS/v1_5/')) \
+                    .append(Element('IntegrationCode').setText( kwargs['integrationcode']))
+                self.client.set_options(soapheaders=integrationCode)
     
     
     def __getattr__(self,attr):
