@@ -13,7 +13,10 @@ LOCAL_TIMEZONE = timezone(LOCAL_TZ)
 MONKEY_PATCHING_ENABLED = True
 
 AUTOTASK_API_TIMEZONE = timezone(AUTOTASK_API_TZ)
+AUTOTASK_API_V1_6_BASE_URL = 'https://webservices.autotask.net/atservices/1.6/atws.wsdl'
+AUTOTASK_API_V1_6_SOAP_HEADER_URL = 'http://autotask.net/ATWS/v1_6/'
 AUTOTASK_API_BASE_URL = 'https://webservices.autotask.net/atservices/1.5/atws.wsdl'
+AUTOTASK_API_SOAP_HEADER_URL = 'http://autotask.net/ATWS/v1_5/'
 AUTOTASK_API_QUERY_RESULT_LIMIT = 500
 AUTOTASK_API_QUERY_ID_LIMIT = 200
 AUTOTASK_API_QUERY_DATEFORMAT = "%Y-%m-%d %H:%M:%S"

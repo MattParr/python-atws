@@ -16,9 +16,12 @@ from .constants import (REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES,
                         REQUEST_TRANSPORT_TIMEOUT_RESPONSE_WAIT,
                         REQUEST_TRANSPORT_TIMEOUT_SEND_WAIT,
                         AUTOTASK_API_BASE_URL,
+                        AUTOTASK_API_SOAP_HEADER_URL,
+                        AUTOTASK_API_V1_6_BASE_URL,
+                        AUTOTASK_API_V1_6_SOAP_HEADER_URL,
                         DISABLE_SSL_WARNINGS,
                         USE_REQUEST_TRANSPORT_TYPE)
-                        
+
 from requests.exceptions import ConnectTimeout, Timeout, ReadTimeout, SSLError
 
 logger = logging.getLogger(__name__)
@@ -33,7 +36,7 @@ import requests
 import functools
 import traceback
 try:
-    from cStringIO import StringIO 
+    from cStringIO import StringIO
 except ImportError:
     try:
         from StringIO import StringIO
@@ -42,14 +45,18 @@ except ImportError:
 
 MAX_RETRIES = REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES
 
-def get_zone_info(username):
-    client = suds.client.Client(url=AUTOTASK_API_BASE_URL,
+def get_zone_info(username, apiversion):
+    if apiversion == 1.5:
+        baseURL = AUTOTASK_API_BASE_URL
+    else:
+        baseURL = AUTOTASK_API_V1_6_BASE_URL
+    client = suds.client.Client(url=baseURL,
                                 transport = get_requests_transport())
     return client.service.getZoneInfo(username)
 
 
-def get_zone_url(username):
-    zone_info = get_zone_info(username)
+def get_zone_url(username, apiversion):
+    zone_info = get_zone_info(username, apiversion)
     return zone_info.URL
 
 
@@ -58,8 +65,8 @@ def get_zone_id(username):
     return zone_info.CI
 
 
-def get_zone_wsdl(username):
-    url = get_zone_url(username)
+def get_zone_wsdl(username, apiversion):
+    url = get_zone_url(username, apiversion)
     try:
         return url.replace('asmx','wsdl')
     except AttributeError:
@@ -74,10 +81,15 @@ def get_connection_url(**kwargs):
     except (KeyError):
         url = None
     if not url:
-        url = get_zone_wsdl(kwargs['username'])
+        if 'apiversion' in kwargs:
+            apiversion = kwargs['apiversion']
+        else:
+            apiversion = 1.5
+            logging.warning('API Version not specified. Defaulting to 1.5')
+        url = get_zone_wsdl(kwargs['username'], apiversion)
     return url
 
-    
+
 def disable_warnings():
     import requests.packages
     requests.packages.urllib3.disable_warnings()
@@ -87,13 +99,13 @@ def get_requests_transport(username=None, password=None):
     session = requests.Session()
     if username and password:
         session.auth = (username, password)
-    session.mount("http://", 
+    session.mount("http://",
                   requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
-    session.mount("https://", 
-                  requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))        
+    session.mount("https://",
+                  requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES))
     return RequestsTransport(session)
 
-    
+
 def connect(**kwargs):
     client_options = kwargs.setdefault('client_options',{})
     if DISABLE_SSL_WARNINGS:
@@ -136,8 +148,8 @@ class RequestsTransport(transport.Transport):
         self._session = session or requests.Session()
         self.timeout = (REQUEST_TRANSPORT_TIMEOUT_CONNECT_WAIT,
                         REQUEST_TRANSPORT_TIMEOUT_RESPONSE_WAIT)
-        
-        
+
+
     @handle_errors
     def open(self, request):
         for attempt in range(1,REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES + 1):
@@ -152,8 +164,8 @@ class RequestsTransport(transport.Transport):
                                  REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES)
                 continue
         return StringIO(resp.content)
-    
-    
+
+
     @handle_errors
     def send(self, request):
         for attempt in range(1,REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES + 1):
@@ -192,16 +204,18 @@ class Connection(object):
             self.client = kwargs['client']
         except KeyError:
             options = kwargs.get('client_options',{})
-            self.client = suds.client.Client(**options)            
+            self.client = suds.client.Client(**options)
 
             if 'integrationcode' in kwargs:
+                headerURL = AUTOTASK_API_SOAP_HEADER_URL
+                if 'apiversion' in kwargs and kwargs['apiversion'] == 1.6:
+                    headerURL = AUTOTASK_API_V1_6_SOAP_HEADER_URL
                 integrationCode = Element("AutotaskIntegrations") \
-                    .append(Attribute('xmlns', 'http://autotask.net/ATWS/v1_5/')) \
+                    .append(Attribute('xmlns', headerURL)) \
                     .append(Element('IntegrationCode').setText( kwargs['integrationcode']))
                 self.client.set_options(soapheaders=integrationCode)
-    
-    
+
+
     def __getattr__(self,attr):
         return getattr(self.client.service,attr)
-    
-    
+

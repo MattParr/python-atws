@@ -1,7 +1,12 @@
 =======
 History
 =======
-0.5.2 
+0.5.3
+------------------
+
+* support API version 1.6 with addition of connect params (defaults to v1.5)
+
+0.5.2
 ------------------
 
 * removed picklist module and documentation references updated to us picklists 

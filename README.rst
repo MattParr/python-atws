@@ -33,6 +33,7 @@ Features
 * Query result generator retrieves all entities, not just 500
 * Zone discovery (you only need a username and password)
 * Picklist python module creator (IDE autofill your picklist IDs)
+* Support for API v1.5 and v1.6
 
 Credits
 ---------
