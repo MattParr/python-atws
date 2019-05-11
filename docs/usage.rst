@@ -16,13 +16,30 @@ wrapper by default, but the others are not enabled by default.::
 
 Connecting to Autotask
 ----------------------
+* API v1.5
 
-Only a username and password are required, but if you are initialising the 
-library often, it may pay to also include the zone url, otherwise it needs to 
+Only a username and password are required, but if you are initialising the
+library often, it may pay to also include the zone url, otherwise it needs to
 be discovered by performing an API lookup.::
 
     at = atws.connect(username='user@usernamespace.com',password='userpassword')
-    
+
+
+If necessary, include the integration code in the connect parameters.::
+
+    at = atws.connect(username='user@usernamespace.com',
+                      password='userpassword',
+                      integrationcode='27-char-integration-code')
+
+* API v1.6
+
+Autotask PSA API v1.6 requires an integration code while making the connection.
+You must also specify the API version in the connect parameters::
+
+    at = atws.connect(username='user@usernamespace.com',
+                      password='userpassword',
+                      apiversion=1.6,
+                      integrationcode='27-char-integration-code')
 
 Support Files
 -------------
