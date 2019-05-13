@@ -24,6 +24,9 @@ from .constants import (REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES,
 
 from requests.exceptions import ConnectTimeout, Timeout, ReadTimeout, SSLError
 
+from xml.sax._exceptions import SAXParseException
+
+
 logger = logging.getLogger(__name__)
 suds_version = float(suds.__version__[:3])
 logger.debug('Suds Version %s', suds_version)
@@ -190,6 +193,8 @@ class RequestsTransport(transport.Transport):
             resp.content,
         )
 
+class ATWSAuthException(Exception):
+    pass
 
 class Connection(object):
     '''
@@ -200,20 +205,28 @@ class Connection(object):
         Constructor
         '''
         self.kwargs = kwargs
-        try:
+        if 'client' in kwargs:
             self.client = kwargs['client']
-        except KeyError:
+        else:
             options = kwargs.get('client_options',{})
-            self.client = suds.client.Client(**options)
+            try:
+                self.client = suds.client.Client(**options)
 
-            if 'integrationcode' in kwargs:
-                headerURL = AUTOTASK_API_SOAP_HEADER_URL
-                if 'apiversion' in kwargs and kwargs['apiversion'] == 1.6:
-                    headerURL = AUTOTASK_API_V1_6_SOAP_HEADER_URL
-                integrationCode = Element("AutotaskIntegrations") \
-                    .append(Attribute('xmlns', headerURL)) \
-                    .append(Element('IntegrationCode').setText( kwargs['integrationcode']))
-                self.client.set_options(soapheaders=integrationCode)
+                if 'integrationcode' in kwargs:
+                    headerURL = AUTOTASK_API_SOAP_HEADER_URL
+                    if 'apiversion' in kwargs and kwargs['apiversion'] == 1.6:
+                        headerURL = AUTOTASK_API_V1_6_SOAP_HEADER_URL
+                    integrationCode = Element("AutotaskIntegrations") \
+                        .append(Attribute('xmlns', headerURL)) \
+                        .append(Element('IntegrationCode').setText( kwargs['integrationcode']))
+                    self.client.set_options(soapheaders=integrationCode)
+            except SAXParseException as err:
+                # ATWS does not report welformed SOAP responses on authentication failures, 
+                # so a parseexception at this point is most likely an auth failure
+                raise ATWSAuthException 
+
+
+
 
 
     def __getattr__(self,attr):
