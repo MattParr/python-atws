@@ -223,7 +223,7 @@ class Connection(object):
             except SAXParseException as err:
                 # ATWS does not report welformed SOAP responses on authentication failures, 
                 # so a parseexception at this point is most likely an auth failure
-                raise ATWSAuthException 
+                raise ATWSAuthException("AutoTask webservice call failed due to authentication or privilege settings")
 
 
 
