@@ -227,6 +227,12 @@ wrapped to provide a better interface to handle them.::
     ticket['My New Userdefined Field'] = my_udf_value
     ticket.update()
     
+Getting Invoice Markup
+----------------------
+Generated markup for an invoice can be fetched from ATWS by supplying invoice ID and preferred markup format (XML or HTML)
+
+    invoice_html_string = at.get_invoice_markup(3, 'html')
+
 
 Additional Features
 -------------------
