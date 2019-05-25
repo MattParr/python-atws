@@ -275,6 +275,8 @@ class Wrapper(connection.Connection):
     def get_field_info(self,entity_type):
         return get_field_info(self, entity_type)
 
+    def get_invoice_markup(self, invoice_id, output_format):
+        return self.client.service.GetInvoiceMarkup(invoice_id, output_format)
 
     def get_udf_info(self,entity_type):
         fields = self.client.factory.create('getUDFInfo')
@@ -409,4 +411,6 @@ class Wrapper(connection.Connection):
         else:
             logger.debug('yielding packet response')
             return response.add_result(result, packet)
+
+
 
