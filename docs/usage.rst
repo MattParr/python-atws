@@ -24,6 +24,10 @@ be discovered by performing an API lookup.::
 
     at = atws.connect(username='user@usernamespace.com',password='userpassword')
 
+If you have obtained an integrationcode then it must be supplied under 1.5 as well.
+
+From api v1.6 documentation:
+ A tracking identifier is not required to access v1.5, unless the user accessing v1.5 already has an identifier assigned. In that case, the user is required to provide their identifier.
 
 If necessary, include the integration code in the connect parameters.::
 
