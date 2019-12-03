@@ -38,6 +38,12 @@ def get_field_picklist(field_name, field_info):
     field_picklist = find('Name', 
                           field_name, 
                           field_info.Field)
+    # Convert Picklist Values to int
+    # See issue: https://github.com/MattParr/python-atws/issues/53
+    for item in field_picklist.PicklistValues:
+        for picklist_value in item[1]:
+            setattr(picklist_value, 'Value', int(picklist_value.Value))
+
     return field_picklist
 
 
@@ -221,7 +227,7 @@ class FieldPicklist(object):
     
     def reverse_lookup(self, value, condition=is_active):
         ''' take a field_name_id and return the label '''
-        label = get_value_label(value, self._picklist, condition=condition)
+        label = get_value_label(int(value), self._picklist, condition=condition)
         return label 
 
 
@@ -337,4 +343,4 @@ class Picklists(object):
     def __iter__(self):
         return iter(self._entity_picklists)
         
-        
+ 
