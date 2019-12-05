@@ -53,7 +53,10 @@ def is_child_field(field_picklist):
 
 
 def get_child_parent_field_name(field_picklist):
-    parent_field_name = field_picklist.PicklistParentValueField
+    try:
+        parent_field_name = field_picklist.PicklistParentValueField
+    except AttributeError: 
+        parent_field_name = None
     return parent_field_name
 
 
