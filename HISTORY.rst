@@ -1,6 +1,12 @@
 =======
 History
 =======
+0.5.5
+------------------
+* fix for integer reverse picklist lookups
+* fix for invoice markup
+* fix for picklists that do not have parents
+
 0.5.3
 ------------------
 
