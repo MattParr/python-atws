@@ -3,6 +3,7 @@ History
 =======
 0.5.5
 ------------------
+
 * fix for integer reverse picklist lookups
 * fix for invoice markup
 * fix for picklists that do not have parents
@@ -12,15 +13,18 @@ History
 
 * support API version 1.6 with addition of connect params (defaults to v1.5)
 
+
 0.5.2
 ------------------
 
 * removed picklist module and documentation references updated to us picklists 
 
+
 0.5.0 (2017-10-24)
 ------------------
 
 * bugfixes
+
 
 0.4.9 (2017-05-08)
 ------------------
@@ -32,7 +36,7 @@ History
 ------------------
 
 * currency symbol picklist on currency entity was causing create_picklist_module
-to fail to complete.  Currency entity is now excluded from default entity set.
+  to fail to complete.  Currency entity is now excluded from default entity set.
 
 
 0.4.0 (2016-11-04)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import setup, Extension
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
