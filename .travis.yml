@@ -9,7 +9,6 @@ deploy:
   tags: true
 env:
 - TOXENV=py35
-- TOXENV=py34
 - TOXENV=py27
 install: pip install -U tox
 language: python
