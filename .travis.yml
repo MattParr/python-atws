@@ -14,10 +14,11 @@ deploy:
       ZmUrbTNmUHZ6U3Yxc28wcHhWM29IRFNTKzJBRHl2TmFPaFlXeFA2c3dBdm10aFY5NjIycE4rRits
       TG9MYWJTemVQQ2VBOUNjM2hxNDZSaVNwYTNIWk1zOW5uYnc1TzJBM2F5NitGUHFGdTkvMXh1VlU9
   provider: pypi
-  repo: MattParr/python-atws
   skip_existing: true
-  tags: true
-  user: __token__
+  on:
+    tags: true
+    repo: MattParr/python-atws    
+  username: "__token__"
 env:
 - TOXENV=py35
 - TOXENV=py27
@@ -25,3 +26,4 @@ install: pip install -U tox
 language: python
 python: 3.5
 script: tox -e ${TOXENV}
+os: linux
