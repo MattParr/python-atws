@@ -97,7 +97,7 @@ cursor which can be used to enumerate the results::
         do_something(ticket)
         
     # process them like a generator
-    ticket = ticket.next()
+    ticket = tickets.next()
     
     # or get a list
     all_tickets = at.query(query).fetch_all()
