@@ -25,7 +25,8 @@ from .helpers import (get_result_entities,
                       query_requires_another_call,
                       get_highest_id,
                       get_entity_type,
-                      trim_single_space_strings_entity)
+                      trim_single_space_strings_entity,
+                      remove_unreferenced_getentityinfo_types)
 from . import monkeypatch
 from .monkeypatch import crud
 from .monkeypatch import userdefinedfields
@@ -39,23 +40,32 @@ logger = logging.getLogger(__name__)
 
 
 def connect(**kwargs):
+    client_options = kwargs.setdefault('client_options', {})
+    plugins = client_options.setdefault('plugins', [])
+    plugins.append(ResponseFixesPlugin())
     if 'support_files_path' in kwargs:
-        plugin = SupportFilesPlugin(kwargs['support_files_path'])
-        client_options = kwargs.setdefault('client_options', {})
-        plugins = client_options.setdefault('plugins', [])
+        plugin = SupportFilesPlugin(kwargs['support_files_path'])        
         plugins.append(plugin)
     wrapper = connection.connect(atws_version=Wrapper,**kwargs)
     if MONKEY_PATCHING_ENABLED:
         monkeypatch.monkey_patch(wrapper)
-
     return wrapper 
 
 
-def enable_support_files(path = None):
-    raise DeprecationWarning('This is no longer used. use...:'
-                             '''connect(support_files_path=<path to dir>)''')
-    
+class ResponseFixesPlugin(MessagePlugin):
+    '''
+    if the response seems broken, it's easiest to just modify it
+    in here before it gets parsed
+    '''
+    def received(self, context):
+        xmltext = context.reply    
+        
+        xmltext = remove_unreferenced_getentityinfo_types(xmltext)
 
+        context.reply = xmltext
+        return context
+    
+    
 class SupportFilesPlugin(MessagePlugin):
     '''
     creates files for sending to autotask

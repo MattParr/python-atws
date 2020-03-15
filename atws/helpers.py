@@ -7,6 +7,14 @@ from __future__ import absolute_import
 from future.utils import iteritems
 import logging
 import math
+from attr import attr
+try:
+    # Python 2
+    from cStringIO import StringIO
+except ImportError:
+    # Python 3
+    from io import StringIO
+from xml.etree import ElementTree
 from suds import WebFault
 from .constants import (AUTOTASK_API_QUERY_RESULT_LIMIT,
                         AUTOTASK_API_TIMEZONE,
@@ -337,3 +345,41 @@ def trim_single_space_strings_entity(**kwargs):
                     '')
     except (AttributeError,KeyError,TypeError):
         pass
+
+def parse_xml(xmltext):
+    xml_iter = ElementTree.iterparse(StringIO(xmltext.decode('utf-8')), events=["start-ns"])
+    xml_namespaces = dict(prefix_namespace_pair for _, 
+                          prefix_namespace_pair in xml_iter)
+    return xml_iter.root, xml_namespaces
+    
+def remove_unreferenced_getentityinfo_types(xmltext):
+    '''
+    issue #75 
+    UserAccessForCreate
+    UserAccessForQuery
+    UserAccessForUpdate
+    UserAccessForDelete
+    
+    '''
+    if b'GetEntityInfo' not in xmltext:
+        return xmltext
+    
+    root, _ = parse_xml(xmltext)
+    
+    attributes_to_remove = ['UserAccessForCreate',
+                            'UserAccessForQuery',
+                            'UserAccessForUpdate',
+                            'UserAccessForDelete']
+    parent_map = {c:p for p in root.iter() for c in p}
+    for c,p in parent_map.items():
+        if any(attr in c.tag for attr in attributes_to_remove):
+            p.remove(c)
+
+    mangled_xmltext = ElementTree.tostring(root)
+    return mangled_xmltext
+    
+    
+    
+    
+    
+    
