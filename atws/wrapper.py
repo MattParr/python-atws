@@ -221,12 +221,20 @@ class ResponseQuery(Response):
 
 class Cursor(object):
     def __init__(self,generator):
-        self._generator = generator
+        self._generator = iter(generator)
         
     
     def __iter__(self):
         'Returns itself as an iterator object'
         return self._generator
+    
+    
+    def __next__(self):
+        return next(self._generator)
+    
+    
+    def next(self):
+        return next(self._generator, None)
     
     
     def __getattr__(self,attr):
