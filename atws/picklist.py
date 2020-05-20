@@ -33,7 +33,13 @@ def find(index_label, index_name, object_list, condition = always_true):
     except StopIteration:
         raise KeyError('label not found in index', index_label, index_name)
     
-
+def convert_digit_to_int(obj, field):
+    try:
+        if getattr(obj, field).isdigit():
+            setattr(obj, field, int(getattr(obj, field)))
+    except Exception:
+        pass # robust
+    
 def get_field_picklist(field_name, field_info):
     field_picklist = find('Name', 
                           field_name, 
@@ -42,8 +48,8 @@ def get_field_picklist(field_name, field_info):
     # See issue: https://github.com/MattParr/python-atws/issues/53
     for item in field_picklist.PicklistValues:
         for picklist_value in item[1]:
-            setattr(picklist_value, 'Value', int(picklist_value.Value))
-
+            convert_digit_to_int(picklist_value, 'Value')
+            convert_digit_to_int(picklist_value, 'parentValue')
     return field_picklist
 
 
