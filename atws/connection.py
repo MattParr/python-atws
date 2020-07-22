@@ -8,6 +8,7 @@ from builtins import range
 import logging
 import suds.client
 import suds.transport as transport
+from suds.plugin import MessagePlugin
 from suds.sax.element import Element
 from suds.sax.attribute import Attribute
 
@@ -19,6 +20,7 @@ from .constants import (REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES,
                         AUTOTASK_API_SOAP_HEADER_URL,
                         AUTOTASK_API_V1_6_BASE_URL,
                         AUTOTASK_API_V1_6_SOAP_HEADER_URL,
+                        AUTOTASK_API_LOG_REQUESTS,
                         DISABLE_SSL_WARNINGS,
                         USE_REQUEST_TRANSPORT_TYPE)
 
@@ -47,6 +49,35 @@ except ImportError:
         from io import BytesIO as StringIO
 
 MAX_RETRIES = REQUEST_TRANSPORT_TRANSIENT_ERROR_RETRIES
+
+
+class SUDSLoggingPlugin(MessagePlugin):
+    """
+    Create a SUDS Logging Plugin in order to handle request logging if
+    logging has been enabled via a contant or the connection setting.
+    """
+    def __init__(self, log_requests=False):
+        """
+        Configure logging
+        """
+        self.log_requests = log_requests
+
+    def sending(self, context):
+        """
+        Handle logging of requests to AutoTask
+        """
+        if self.log_requests:
+            logger.info('Sending request to AutoTask:')
+            logger.info(str(context.envelope))
+
+    def received(self, context):
+        """
+        Handl logging of responses from AutoTask
+        """
+        if self.log_requests:
+            logger.info('Response received from AutoTask:')
+            logger.info(str(context.reply))
+
 
 def get_zone_info(username, apiversion):
     if apiversion == 1.5:
@@ -209,8 +240,11 @@ class Connection(object):
             self.client = kwargs['client']
         else:
             options = kwargs.get('client_options',{})
+            log_requests = kwargs.get('log_requests', AUTOTASK_API_LOG_REQUESTS)
             try:
-                self.client = suds.client.Client(**options)
+                self.client = suds.client.Client(
+                    plugins=[SUDSLoggingPlugin(log_requests)],
+                    **options)
 
                 if 'integrationcode' in kwargs:
                     headerURL = AUTOTASK_API_SOAP_HEADER_URL
