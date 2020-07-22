@@ -45,6 +45,17 @@ You must also specify the API version in the connect parameters::
                       apiversion=1.6,
                       integrationcode='27-char-integration-code')
 
+* Debugging Communication with AutoTask API
+
+You may use the `log_requests` parameter to log all XML requests sent 
+to and received from AutoTask that occure after authentication. Example::
+
+    at = atws.connect(username='user@usernamespace.com',
+                      password='userpassword',
+                      apiversion=1.6,
+                      integrationcode='27-char-integration-code',
+                      log_requests=True)
+
 Support Files
 -------------
 
